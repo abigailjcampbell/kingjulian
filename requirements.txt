@@ -5,3 +5,4 @@ dj-database-url>=2.2
 psycopg[binary]>=3.2
 python-dateutil>=2.9
 icalendar>=6.0   # used by tests to validate the .ics export
+tzdata   # IANA timezone data (needed on Windows / slim images)

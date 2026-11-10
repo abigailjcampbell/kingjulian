@@ -33,7 +33,7 @@ on later runs, up to 3 attempts. Set `EMAIL_BACKEND`, `DEFAULT_FROM_EMAIL`, `SIT
 
 ## Known limits / decisions to revisit
 * An overdue task gets **one** overdue email, not a recurring nag.
-* "Today" is the server's date (UTC by default); accounts have no timezone yet.
+* Each account has its own timezone (Settings); due dates, overdue and reminders use the account's local date.
 * Editing a task's schedule applies from the *next* occurrence; use the occurrence page to move the current due date.
 * Assigned contacts (vendors, tenants) are never emailed automatically.
 * Delivery is at-least-once: a crash between SMTP send and commit can re-send one reminder.

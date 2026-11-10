@@ -1,4 +1,5 @@
 from .tenancy import reset_account, set_account
+from django.utils import timezone
 
 
 class ActiveAccountMiddleware:
@@ -18,6 +19,7 @@ class ActiveAccountMiddleware:
         request.membership = None
         request.memberships = []
         token = None
+        zone_activated = False
 
         if request.user.is_authenticated:
             memberships = list(
@@ -33,8 +35,13 @@ class ActiveAccountMiddleware:
                 request.account = chosen.account
                 request.session["account_id"] = chosen.account_id
                 token = set_account(chosen.account_id)
+                # Everything that asks timezone.localdate()/localtime() now sees the account's own clock.
+                timezone.activate(chosen.account.zone)
+                zone_activated = True
         try:
             return self.get_response(request)
         finally:
             if token is not None:
                 reset_account(token)
+            if zone_activated:
+                timezone.deactivate()

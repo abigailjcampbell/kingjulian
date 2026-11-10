@@ -129,7 +129,7 @@ class IcsView(TenantViewMixin, View):
         entries = calendar_entries(today - timedelta(days=ICS_DAYS_BACK), today + timedelta(days=ICS_DAYS_AHEAD),
                                    today=today, can_write=False)
         body = build_ics(entries, account_name=request.account.name, account_id=request.account.pk,
-                         now=timezone.now())
+                         now=timezone.now(), zone=request.account.zone)
         response = HttpResponse(body, content_type="text/calendar; charset=utf-8")
         response["Content-Disposition"] = 'attachment; filename="property-calendar.ics"'
         response["Cache-Control"] = "private, no-store"

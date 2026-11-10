@@ -2,6 +2,8 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.functions import Lower
+from django.utils import timezone as dj_timezone
+from .timezones import DEFAULT as DEFAULT_TIMEZONE, load_zone, validate_timezone
 
 
 class UserManager(BaseUserManager):
@@ -51,9 +53,20 @@ class Account(models.Model):
 
     name = models.CharField(max_length=120)
     created_at = models.DateTimeField(auto_now_add=True)
+    # What "today" means for due dates, overdue status, reminders and the calendar (IANA name).
+    timezone = models.CharField(max_length=64, default=DEFAULT_TIMEZONE, validators=[validate_timezone])
 
     def __str__(self):
         return self.name
+
+    @property
+    def zone(self):
+        """tzinfo for this account; falls back to UTC if the stored name is unusable."""
+        return load_zone(self.timezone)
+
+    def today(self):
+        """The account's current calendar date, right now."""
+        return dj_timezone.localdate(timezone=self.zone)
 
 
 class Membership(models.Model):

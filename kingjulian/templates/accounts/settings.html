@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Account settings{% endblock %}
+{% block content %}
+<h1>Account settings</h1>
+<p>Local time in <strong>{{ request.account.timezone }}</strong> right now: <strong>{{ local_now|date:"D, M j, Y g:i A" }}</strong>.
+   This is the clock used for due dates, "overdue", reminders and the calendar.</p>
+<form method="post" class="crud">
+  {% csrf_token %}{{ form.non_field_errors }}{{ form.as_div }}
+  <button type="submit">Save</button>
+  <a class="btn secondary" href="{% url 'home' %}">Cancel</a>
+</form>
+{% endblock %}

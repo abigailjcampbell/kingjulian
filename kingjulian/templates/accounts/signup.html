@@ -2,4 +2,11 @@
 {% block content %}
 <h1>Create your account</h1>
 <form method="post" class="crud">{% csrf_token %}{{ form.as_div }}<button>Sign up</button></form>
+<script>
+  // Preselect the visitor's own timezone; the server still validates whatever is submitted.
+  try {
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone, sel = document.getElementById("id_timezone");
+    if (sel && tz && Array.prototype.some.call(sel.options, function (o) { return o.value === tz; })) sel.value = tz;
+  } catch (e) {}
+</script>
 {% endblock %}

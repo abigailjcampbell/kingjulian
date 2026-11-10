@@ -1,4 +1,4 @@
-from datetime import date as D, datetime, time as T
+from datetime import date as D, datetime, time as T, timezone as tz_
 
 import icalendar
 from django.test import SimpleTestCase
@@ -7,6 +7,7 @@ from planner.ical import build_ics, escape, fold
 from planner.services import Entry
 
 NOW = datetime(2026, 11, 6, 12, 0, 0)
+UTC = tz_.utc
 
 
 def ics(*entries, name="Acme, Inc."):
@@ -53,16 +54,22 @@ class DocumentTests(SimpleTestCase):
         self.assertIsNone(v["DTSTART"].dt.tzinfo)
         self.assertNotIn("TRANSP", v)
 
+    def test_timed_events_are_written_in_utc(self):
+        _, cal = ics(ev(start_time=T(10, 0), end_time=T(12, 30)))          # default zone is UTC
+        v = cal.walk("VEVENT")[0]
+        self.assertEqual((v["DTSTART"].dt, v["DTEND"].dt), (datetime(2026, 11, 15, 10, tzinfo=UTC), datetime(2026, 11, 15, 12, 30, tzinfo=UTC)))
+        self.assertNotIn("TRANSP", v)
+
     def test_missing_end_time_defaults_to_one_hour_even_across_midnight(self):
         _, cal = ics(ev(start_time=T(23, 30)))
         v = cal.walk("VEVENT")[0]
-        self.assertEqual((v["DTSTART"].dt, v["DTEND"].dt), (datetime(2026, 11, 15, 23, 30), datetime(2026, 11, 16, 0, 30)))
+        self.assertEqual((v["DTSTART"].dt, v["DTEND"].dt), (datetime(2026, 11, 15, 23, 30, tzinfo=UTC), datetime(2026, 11, 16, 0, 30, tzinfo=UTC)))
 
     def test_multi_day_timed_event_uses_end_date_and_time(self):
         _, cal = ics(ev(start=D(2026, 11, 15), end=D(2026, 11, 17), start_time=T(9, 0), end_time=T(8, 0)))
         v = cal.walk("VEVENT")[0]
-        self.assertEqual((v["DTSTART"].dt, v["DTEND"].dt), (datetime(2026, 11, 15, 9), datetime(2026, 11, 17, 8)))
-
+        self.assertEqual((v["DTSTART"].dt, v["DTEND"].dt), (datetime(2026, 11, 15, 9, tzinfo=UTC), datetime(2026, 11, 17, 8, tzinfo=UTC)))
+    
     def test_special_characters_round_trip(self):
         title = "Inspection, city; \"Maple\" — año 日本"
         _, cal = ics(ev(title, where="Maple Duplex", detail="With: Dana\nBring keys; ID, badge"))
@@ -92,3 +99,4 @@ class DocumentTests(SimpleTestCase):
     def test_account_name_is_escaped(self):
         text, _ = ics(name="Smith; Jones, LLC")
         self.assertIn("X-WR-CALNAME:Smith\\; Jones\\, LLC", text)
+

@@ -61,6 +61,7 @@
       </form>
     {% elif request.account %}<span>{{ request.account.name }}</span>{% endif %}
     {% if request.membership %}<small style="color:var(--muted)">{{ request.membership.get_role_display }}</small>{% endif %}
+    {% if request.membership.role == "owner" %}<a href="{% url 'account_settings' %}">Settings</a>{% endif %}
     <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="secondary">Log out</button></form>
   {% else %}
     <span class="spacer"></span><a href="{% url 'login' %}">Log in</a><a href="{% url 'signup' %}">Sign up</a>

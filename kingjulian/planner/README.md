@@ -21,10 +21,9 @@ Only manual entries are stored (`Event`: inspection, showing, lease milestone, o
 * `/planner/calendar.ics` download of the window from 31 days back to 366 days ahead.
 
 ## .ics notes
-Written by hand to RFC 5545 (escaping, 75-octet folding that never splits a character, CRLF) and validated in tests with the `icalendar` parser. All-day items use exclusive `DTEND`. Timed events are **floating local times** (no timezone). Each item has a stable UID scoped to the account, so re-importing updates rather than duplicates. This is a **download**, not a live subscription: calendar apps can't log in, so subscribing needs per-user secret URLs (not built).
+Written by hand to RFC 5545 (escaping, 75-octet folding that never splits a character, CRLF) and validated in tests with the `icalendar` parser. All-day items use exclusive `DTEND`. Timed events are converted from the account's timezone to UTC. Each item has a stable UID scoped to the account, so re-importing updates rather than duplicates. This is a **download**, not a live subscription: calendar apps can't log in, so subscribing needs per-user secret URLs (not built).
 
 ## Known limits / decisions to revisit
-* No account timezone yet: "today" and event times use the server's date/clock (same gap as the reminder job). One `Account.timezone` would fix both.
 * Events don't repeat (an annual insurance review is entered each year). The recurrence engine from step 3 could be reused.
 * A completed task shows on its **due** date, not the day it was done.
 * Spend only counts completed work that has a cost entered.
