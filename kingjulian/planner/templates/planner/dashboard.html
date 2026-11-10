@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<style>
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:1rem; margin-bottom:1.2rem; }
+  .stat { background:#fff; border:1px solid var(--line); border-radius:8px; padding:.9rem 1rem; }
+  .stat strong { font-size:1.9rem; display:block; line-height:1.1; } .stat span { color:var(--muted); font-size:.85rem; }
+  .stat.alert strong { color:#b42318; }
+  .panels { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:1rem; }
+  .panel { background:#fff; border:1px solid var(--line); border-radius:8px; padding:.9rem 1rem; }
+  .panel h2 { font-size:1rem; margin:0 0 .5rem; display:flex; justify-content:space-between; align-items:baseline; }
+  .panel h2 small { color:var(--muted); font-weight:400; }
+  .panel ul { list-style:none; margin:0; padding:0; } .panel li { padding:.35rem 0; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:.8rem; }
+  .panel li:first-child { border-top:0; } .sub { color:var(--muted); font-size:.85rem; } .empty { color:var(--muted); }
+  .late { color:#b42318; font-weight:600; white-space:nowrap; } .soon { color:#92400e; white-space:nowrap; }
+  .links { margin-top:1.2rem; display:flex; gap:1.2rem; flex-wrap:wrap; }
+</style>
+<h1>{{ request.account.name }} <small style="color:var(--muted);font-weight:400">· {{ today|date:"l, F j" }}</small></h1>
+
+<div class="stats">
+  <div class="stat {% if d.overdue_count %}alert{% endif %}"><strong>{{ d.overdue_count }}</strong><span>overdue</span></div>
+  <div class="stat"><strong>{{ d.due_week_count }}</strong><span>due in the next 7 days</span></div>
+  <div class="stat"><strong>{{ d.due_month_count }}</strong><span>due in the next 30 days</span></div>
+  <div class="stat"><strong>{{ d.open_count }}</strong><span>open tasks in total</span></div>
+</div>
+
+<div class="panels">
+  <section class="panel"><h2>Overdue <small><a href="{% url 'occurrence_list' %}">all maintenance →</a></small></h2>
+    <ul>{% for o in d.overdue %}
+      <li><span><a href="{% url 'occurrence_edit' o.pk %}">{{ o.task.title }}</a><br><span class="sub">{{ o.task.property.name }}{% if o.task.item %} · {{ o.task.item.name }}{% endif %}</span></span><span class="late">{{ o.due_label }}</span></li>
+    {% empty %}<li class="empty">Nothing overdue.</li>{% endfor %}</ul>
+    {% if d.overdue_more %}<p class="sub" style="margin:.4rem 0 0">+ {{ d.overdue_more }} more · <a href="{% url 'agenda' %}">see agenda</a></p>{% endif %}
+  </section>
+
+  <section class="panel"><h2>Due this week <small>next 7 days</small></h2>
+    <ul>{% for o in d.due_week %}
+      <li><span><a href="{% url 'occurrence_edit' o.pk %}">{{ o.task.title }}</a><br><span class="sub">{{ o.task.property.name }}{% if o.task.item %} · {{ o.task.item.name }}{% endif %}</span></span><span class="soon">{{ o.due_label }}</span></li>
+    {% empty %}<li class="empty">Nothing due.</li>{% endfor %}</ul>
+  </section>
+
+  <section class="panel"><h2>Upcoming events <small><a href="{% url 'calendar' %}">calendar →</a></small></h2>
+    <ul>{% for e in d.events_upcoming %}
+      <li><span>{% if request.membership.can_write %}<a href="{% url 'event_edit' e.pk %}">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}<br><span class="sub">{{ e.property.name|default:"" }}{% if e.property %} · {% endif %}{{ e.time_label }}</span></span><span class="soon">{{ e.date_label }}</span></li>
+    {% empty %}<li class="empty">No events in the next 14 days.</li>{% endfor %}</ul>
+  </section>
+
+  <section class="panel"><h2>Warranties ending <small>next 60 days</small></h2>
+    <ul>{% for i in d.warranties_expiring %}
+      <li><span>{% if request.membership.can_write %}<a href="{% url 'inventoryitem_edit' i.pk %}">{{ i.name }}</a>{% else %}{{ i.name }}{% endif %}<br><span class="sub">{{ i.property.name }}{% if i.unit %} · {{ i.unit.name }}{% endif %}</span></span><span class="soon">{{ i.warranty_expires_on|date:"M j, Y" }}</span></li>
+    {% empty %}<li class="empty">None expiring.</li>{% endfor %}</ul>
+    {% if d.warranties_expired %}<h2 style="margin-top:.8rem">Recently expired <small>last 30 days</small></h2>
+    <ul>{% for i in d.warranties_expired %}
+      <li><span>{% if request.membership.can_write %}<a href="{% url 'inventoryitem_edit' i.pk %}">{{ i.name }}</a>{% else %}{{ i.name }}{% endif %}<br><span class="sub">{{ i.property.name }}{% if i.unit %} · {{ i.unit.name }}{% endif %}</span></span><span class="late">{{ i.warranty_expires_on|date:"M j, Y" }}</span></li>
+    {% endfor %}</ul>{% endif %}
+  </section>
+
+  <section class="panel"><h2>Needs attention <small>{{ d.attention_count }} item{{ d.attention_count|pluralize }} in poor shape</small></h2>
+    <ul>{% for i in d.attention %}
+      <li><span>{% if request.membership.can_write %}<a href="{% url 'inventoryitem_edit' i.pk %}">{{ i.name }}</a>{% else %}{{ i.name }}{% endif %}<br><span class="sub">{{ i.property.name }}{% if i.unit %} · {{ i.unit.name }}{% endif %}</span></span><span class="{% if i.condition == 'replace' %}late{% else %}soon{% endif %}">{{ i.get_condition_display }}</span></li>
+    {% empty %}<li class="empty">Everything is in good shape.</li>{% endfor %}</ul>
+  </section>
+
+  <section class="panel"><h2>Maintenance spend <small>last 12 months</small></h2>
+    <p style="margin:0 0 .5rem"><strong style="font-size:1.5rem">${{ d.spend_total|floatformat:"2g" }}</strong> <span class="sub">across {{ d.spend_jobs }} job{{ d.spend_jobs|pluralize }} with a recorded cost</span></p>
+    <ul>{% for row in d.spend_by_property %}
+      <li><span>{{ row.task__property__name }}</span><span>${{ row.total|floatformat:"2g" }} <span class="sub">· {{ row.jobs }} job{{ row.jobs|pluralize }}</span></span></li>
+    {% empty %}<li class="empty">No completed work with a cost yet.</li>{% endfor %}</ul>
+  </section>
+</div>
+
+<div class="links">
+  {% for label, pair in d.counts.items %}<a href="{% url pair.1 %}">{{ pair.0 }}: {{ label }}</a>{% endfor %}
+</div>
+{% endblock %}

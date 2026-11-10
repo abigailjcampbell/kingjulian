@@ -1,5 +1,5 @@
 from django.urls import path
 
-from .views import HomeView
+from planner.views import DashboardView
 
-urlpatterns = [path("", HomeView.as_view(), name="home")]
+urlpatterns = [path("", DashboardView.as_view(), name="home")]

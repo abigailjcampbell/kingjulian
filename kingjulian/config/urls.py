@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import include, path
+from planner.views import DashboardView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -9,4 +10,5 @@ urlpatterns = [
     path("inventory/", include("inventory.urls")),
     path("", include("core.urls")),
     path("maintenance/", include("maintenance.urls")),
+    path("planner/", include("planner.urls")),
 ]

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Calendar · {{ title }}{% endblock %}
+{% block content %}
+<style>
+  .cal-head { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; margin-bottom:.8rem; }
+  .cal-head h1 { margin:0 .5rem 0 0; min-width:11ch; } .cal-head .push { margin-left:auto; display:flex; gap:.5rem; flex-wrap:wrap; }
+  table.cal { table-layout:fixed; } table.cal th { text-align:center; }
+  table.cal td { vertical-align:top; height:6.4rem; padding:.25rem .3rem; border:1px solid var(--line); overflow:hidden; }
+  td.out { background:#f1f4f7; color:var(--muted); } td.today { outline:2px solid var(--accent); outline-offset:-2px; background:#eff6ff; }
+  .daynum { display:flex; justify-content:space-between; font-size:.8rem; color:var(--muted); }
+  .daynum a { text-decoration:none; color:var(--muted); visibility:hidden; } td:hover .daynum a { visibility:visible; }
+  .chip { display:block; font-size:.75rem; line-height:1.25; padding:1px 4px; margin-top:2px; border-radius:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
+  .chip.event { background:#dbeafe; color:#1e3a8a; } .chip.task { background:#dcfce7; color:#14532d; }
+  .chip.task.overdue { background:#fee2e2; color:#991b1b; font-weight:600; } .chip.task.done { background:#f1f5f9; color:#64748b; text-decoration:line-through; }
+  .chip.warranty { background:#fef3c7; color:#78350f; } .chip.warranty.expired { background:#fde8e8; color:#991b1b; }
+  .more { font-size:.72rem; color:var(--muted); }
+  .legend { display:flex; gap:.8rem; margin-top:.7rem; font-size:.8rem; flex-wrap:wrap; } .legend .chip { margin:0; display:inline-block; }
+</style>
+<div class="cal-head">
+  <h1>{{ title }}</h1>
+  <a class="btn secondary" href="?month={{ prev_month }}" aria-label="Previous month">←</a>
+  <a class="btn secondary" href="?month={{ next_month }}" aria-label="Next month">→</a>
+  {% if not is_current_month %}<a class="btn secondary" href="?month={{ this_month }}">Today</a>{% endif %}
+  <span class="push">
+    <a class="btn secondary" href="{% url 'agenda' %}">Agenda</a>
+    <a class="btn secondary" href="{% url 'event_list' %}">Events</a>
+    <a class="btn secondary" href="{% url 'calendar_ics' %}">Export .ics</a>
+    {% if request.membership.can_write %}<a class="btn" href="{% url 'event_create' %}">+ Event</a>{% endif %}
+  </span>
+</div>
+<table class="cal">
+  <thead><tr>{% for w in weekdays %}<th>{{ w }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for week in grid %}<tr>
+    {% for c in week %}
+      <td class="{% if not c.in_month %}out{% endif %} {% if c.is_today %}today{% endif %}">
+        <div class="daynum"><span>{{ c.date.day }}</span>{% if request.membership.can_write %}<a href="{% url 'event_create' %}?date={{ c.date|date:'Y-m-d' }}" title="Add event">+</a>{% endif %}</div>
+        {% for e in c.entries %}
+          {% if e.url %}<a class="chip {{ e.kind }} {{ e.status }}" href="{{ e.url }}" title="{{ e.title }}{% if e.where %} · {{ e.where }}{% endif %}">{% if e.start_time and e.start == c.date %}{{ e.start_time|time:"g:i A" }} {% endif %}{{ e.title }}</a>
+          {% else %}<span class="chip {{ e.kind }} {{ e.status }}" title="{{ e.title }}{% if e.where %} · {{ e.where }}{% endif %}">{% if e.start_time and e.start == c.date %}{{ e.start_time|time:"g:i A" }} {% endif %}{{ e.title }}</span>{% endif %}
+        {% endfor %}
+        {% if c.more %}<a class="more" href="{% url 'agenda' %}?from={{ c.date|date:'Y-m-d' }}&amp;days=7">+{{ c.more }} more</a>{% endif %}
+      </td>
+    {% endfor %}
+  </tr>{% endfor %}
+  </tbody>
+</table>
+<div class="legend"><span class="chip event">Event</span><span class="chip task">Maintenance due</span><span class="chip task overdue">Overdue</span><span class="chip task done">Done</span><span class="chip warranty">Warranty ends</span></div>
+{% endblock %}

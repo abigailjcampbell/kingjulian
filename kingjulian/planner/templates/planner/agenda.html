@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Agenda{% endblock %}
+{% block content %}
+<style>
+  .day { background:#fff; border:1px solid var(--line); border-radius:8px; margin-bottom:.7rem; }
+  .day h2 { font-size:.95rem; margin:0; padding:.45rem .8rem; background:#f1f4f7; border-bottom:1px solid var(--line); border-radius:8px 8px 0 0; }
+  .day.today h2 { background:#dbeafe; } .day ul { list-style:none; margin:0; padding:0; }
+  .day li { padding:.45rem .8rem; border-top:1px solid var(--line); display:flex; gap:.8rem; justify-content:space-between; } .day li:first-child { border-top:0; }
+  .tag { font-size:.72rem; padding:1px 6px; border-radius:10px; background:#e2e8f0; white-space:nowrap; align-self:center; }
+  .tag.overdue { background:#fee2e2; color:#991b1b; } .tag.done { background:#f1f5f9; color:#64748b; } .tag.expired { background:#fde8e8; color:#991b1b; }
+  .sub { color:var(--muted); font-size:.85rem; } .warn { border-color:#fca5a5; } .warn h2 { background:#fee2e2; color:#991b1b; }
+</style>
+<div class="toolbar">
+  <h1 style="margin:0">Agenda</h1>
+  <a class="btn secondary" href="{% url 'calendar' %}">Month view</a>
+  <form method="get" style="display:flex;gap:.4rem;margin-left:auto">
+    <input type="date" name="from" value="{{ start|date:'Y-m-d' }}">
+    <select name="days" onchange="this.form.submit()">{% for n in choices %}<option value="{{ n }}" {% if n == days %}selected{% endif %}>{{ n }} days</option>{% endfor %}</select>
+    <button class="secondary">Go</button>
+  </form>
+</div>
+<p class="sub">{{ start|date:"M j, Y" }} – {{ end|date:"M j, Y" }}
+  · <a href="?from={{ prev_start|date:'Y-m-d' }}&amp;days={{ days }}">← earlier</a> · <a href="?from={{ next_start|date:'Y-m-d' }}&amp;days={{ days }}">later →</a></p>
+
+{% if overdue %}<section class="day warn"><h2>Overdue ({{ overdue_count }})</h2><ul>
+  {% for o in overdue %}<li><span><a href="{% url 'occurrence_edit' o.pk %}">{{ o.task.title }}</a><br><span class="sub">{{ o.task.property.name }}{% if o.task.item %} · {{ o.task.item.name }}{% endif %}</span></span><span class="tag overdue">{{ o.due_label }}</span></li>{% endfor %}
+</ul></section>{% endif %}
+
+{% for day, entries in groups %}
+<section class="day {% if day == today %}today{% endif %}"><h2>{{ day|date:"l, F j" }}{% if day == today %} · today{% endif %}</h2><ul>
+  {% for e in entries %}<li>
+    <span>{% if e.url %}<a href="{{ e.url }}">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}
+      <br><span class="sub">{% if e.start_time %}{{ e.start_time|time:"g:i A" }}{% if e.end_time %}–{{ e.end_time|time:"g:i A" }}{% endif %} · {% endif %}{{ e.where }}{% if e.end != e.start %} · through {{ e.end|date:"M j" }}{% endif %}</span></span>
+    <span class="tag {{ e.status }}">{{ e.label }}{% if e.status == 'overdue' %} · overdue{% elif e.status == 'done' %} · done{% endif %}</span>
+  </li>{% endfor %}
+</ul></section>
+{% empty %}{% if not overdue %}<p>Nothing scheduled in this window.</p>{% endif %}{% endfor %}
+{% endblock %}

@@ -15,7 +15,7 @@
     </select>
   {% endfor %}
   <noscript><button>Filter</button></noscript>
-  {% if request.membership.can_write %}<a class="btn" href="{{ create_url }}" style="margin-left:auto">+ New</a>{% endif %}
+  {% if create_url and request.membership.can_write %}<a class="btn" href="{{ create_url }}" style="margin-left:auto">+ New</a>{% endif %}
 </form>
 <div id="results">{% include "crud/_results.html" %}</div>
 {% endblock %}

@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "contacts",
     "inventory",
     "maintenance",
+    "planner",
 ]
 
 MIDDLEWARE = [

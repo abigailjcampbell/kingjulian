@@ -25,6 +25,7 @@ class Filter:
     label: str
     choices: Callable[[], list]      # -> [(value, label), ...]; tenant-scoped when FK-based
     default: str = ""                # applied when the param is absent from the query string
+    apply: Callable | None = None    # custom (queryset, value) -> queryset instead of field=value
 
 
 class TenantViewMixin(LoginRequiredMixin):
@@ -41,8 +42,6 @@ class TenantViewMixin(LoginRequiredMixin):
 
     def url(self, suffix, *args):
         return reverse(f"{self.url_basename}_{suffix}", args=args)
-
-
 
 
 class TenantListView(TenantViewMixin, ListView):
@@ -69,7 +68,7 @@ class TenantListView(TenantViewMixin, ListView):
             value = self.request.GET.get(flt.param, flt.default)
             # Only accept values that are in the (tenant-scoped) choice list.
             if value and value in {str(v) for v, _ in flt.choices()}:
-                qs = qs.filter(**{flt.field: value})
+                qs = flt.apply(qs, value) if flt.apply else qs.filter(**{flt.field: value})
         return qs
 
     def get_context_data(self, **kwargs):
