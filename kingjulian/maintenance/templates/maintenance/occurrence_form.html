@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+{% with task=object.task %}
+<h1>{{ title }}</h1>
+<p>
+  <strong>{{ object.due_date|date:"D, M j, Y" }}</strong> · {{ object.due_label }} · {{ object.get_status_display }}<br>
+  {{ task.property.name }}{% if task.unit %} / {{ task.unit.name }}{% endif %}{% if task.item %} / {{ task.item.name }}{% endif %}<br>
+  Repeats: {{ task.schedule_label }}
+  {% if task.assigned_contact %}<br>Assigned to: {{ task.assigned_contact.name }} {{ task.assigned_contact.phone }}{% endif %}
+</p>
+{% if task.description %}<p>{{ task.description|linebreaksbr }}</p>{% endif %}
+{% if object.completed_on %}<p>Completed {{ object.completed_on|date:"M j, Y" }}.</p>{% endif %}
+
+{% if is_open and request.membership.can_write %}
+<div class="toolbar">
+  <a class="btn" href="{% url 'occurrence_complete' object.pk %}">Mark complete</a>
+  <form method="post" action="{% url 'occurrence_skip' object.pk %}" onsubmit="return confirm('Skip this one? The schedule continues.')">
+    {% csrf_token %}<button class="secondary">Skip this time</button>
+  </form>
+  <a class="btn secondary" href="{% url 'task_edit' task.pk %}">Edit task</a>
+</div>
+{% endif %}
+
+<form method="post" class="crud">
+  {% csrf_token %}{{ form.non_field_errors }}{{ form.as_div }}
+  {% if request.membership.can_write %}<button type="submit">Save</button>{% endif %}
+  <a class="btn secondary" href="{{ list_url }}">Back</a>
+</form>
+{% endwith %}
+{% endblock %}

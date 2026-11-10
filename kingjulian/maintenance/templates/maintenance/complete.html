@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}: {{ occurrence.task.title }}</h1>
+<p>{{ occurrence.task.property.name }} · due {{ occurrence.due_date|date:"M j, Y" }} ({{ occurrence.due_label }})</p>
+<form method="post" class="crud">
+  {% csrf_token %}{{ form.non_field_errors }}{{ form.as_div }}
+  <button type="submit">Complete</button>
+  <a class="btn secondary" href="{{ list_url }}">Cancel</a>
+</form>
+{% endblock %}
