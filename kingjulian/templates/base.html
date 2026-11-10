@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Property Manager{% endblock %}</title>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <style>
+    :root { --fg:#1f2933; --muted:#6b7785; --line:#dde2e8; --bg:#f6f8fa; --accent:#2563eb; }
+    * { box-sizing: border-box; }
+    body { font: 15px/1.5 system-ui, sans-serif; color: var(--fg); background: var(--bg); margin: 0; }
+    nav { background: #fff; border-bottom: 1px solid var(--line); padding: .6rem 1.2rem;
+          display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap; }
+    nav a { color: var(--fg); text-decoration: none; font-weight: 500; }
+    nav a:hover { color: var(--accent); }
+    nav .spacer { flex: 1; }
+    main { max-width: 1100px; margin: 1.5rem auto; padding: 0 1.2rem; }
+    h1 { margin: 0 0 1rem; font-size: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); }
+    th, td { text-align: left; padding: .5rem .75rem; border-bottom: 1px solid var(--line); }
+    th { font-size: .8rem; text-transform: uppercase; color: var(--muted); letter-spacing: .03em; }
+    .toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+    input, select, textarea, button { font: inherit; padding: .4rem .6rem; border: 1px solid var(--line); border-radius: 6px; }
+    textarea { width: 100%; }
+    button, .btn { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: .45rem .9rem;
+                   text-decoration: none; cursor: pointer; display: inline-block; }
+    .btn.secondary, button.secondary { background: #fff; color: var(--fg); border: 1px solid var(--line); }
+    .btn.danger, button.danger { background: #b42318; }
+    .linklike { background: none; border: 0; color: var(--accent); padding: 0; cursor: pointer; }
+    .messages { list-style: none; padding: 0; } .messages li { background: #e6f4ea; padding: .5rem .8rem; border-radius: 6px; margin-bottom: .5rem; }
+    .messages li.error { background: #fde8e8; }
+    form.crud div { margin-bottom: .8rem; } form.crud label { display: block; font-weight: 600; margin-bottom: .2rem; }
+    form.crud input:not([type=checkbox]), form.crud select { width: 100%; max-width: 420px; }
+    .errorlist { color: #b42318; list-style: none; padding: 0; margin: .2rem 0; }
+    .helptext { color: var(--muted); font-size: .85rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 1rem; text-decoration: none; color: inherit; }
+    .card strong { font-size: 1.8rem; display: block; }
+    .pager { margin-top: .8rem; display: flex; gap: 1rem; align-items: center; color: var(--muted); }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="{% url 'home' %}"><strong>Property Manager</strong></a>
+  {% if request.user.is_authenticated %}
+    <a href="{% url 'property_list' %}">Properties</a>
+    <a href="{% url 'unit_list' %}">Units</a>
+    <a href="{% url 'inventoryitem_list' %}">Inventory</a>
+    <a href="{% url 'occurrence_list' %}">Maintenance</a>
+    <a href="{% url 'task_list' %}">Tasks</a>
+    <a href="{% url 'contact_list' %}">Contacts</a>
+    <span class="spacer"></span>
+    {% if request.memberships|length > 1 %}
+      <form method="post" action="{% url 'switch_account' %}" style="display:flex;gap:.3rem">{% csrf_token %}
+        <select name="account_id" onchange="this.form.submit()">
+          {% for m in request.memberships %}
+            <option value="{{ m.account_id }}" {% if m.account_id == request.account.pk %}selected{% endif %}>{{ m.account.name }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    {% elif request.account %}<span>{{ request.account.name }}</span>{% endif %}
+    {% if request.membership %}<small style="color:var(--muted)">{{ request.membership.get_role_display }}</small>{% endif %}
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="secondary">Log out</button></form>
+  {% else %}
+    <span class="spacer"></span><a href="{% url 'login' %}">Log in</a><a href="{% url 'signup' %}">Sign up</a>
+  {% endif %}
+</nav>
+<main>
+  {% if messages %}<ul class="messages">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

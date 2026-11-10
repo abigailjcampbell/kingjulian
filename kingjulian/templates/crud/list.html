@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form class="toolbar" method="get"
+      hx-get="" hx-target="#results" hx-push-url="true"
+      hx-trigger="input changed delay:300ms from:find input[name=q], change from:find select">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search…" autocomplete="off">
+  {% for f in filter_fields %}
+    <select name="{{ f.param }}" aria-label="{{ f.label }}">
+      <option value="">Any {{ f.label|lower }}</option>
+      {% for value, label in f.choices %}
+        <option value="{{ value }}" {% if f.selected == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  {% endfor %}
+  <noscript><button>Filter</button></noscript>
+  {% if request.membership.can_write %}<a class="btn" href="{{ create_url }}" style="margin-left:auto">+ New</a>{% endif %}
+</form>
+<div id="results">{% include "crud/_results.html" %}</div>
+{% endblock %}

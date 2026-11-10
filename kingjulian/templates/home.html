@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ request.account.name }}</h1>
+<div class="cards">
+  {% for label, count, url_name in counts %}
+    <a class="card" href="{% url url_name %}"><strong>{{ count }}</strong>{{ label }}</a>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="crud">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {{ form.as_div }}
+  <button type="submit">Save</button>
+  <a class="btn secondary" href="{{ list_url }}">Cancel</a>
+</form>
+{% if archive_url and request.membership.can_write %}
+<form method="post" action="{{ archive_url }}" style="margin-top:1.5rem"
+      onsubmit="return confirm('Archive this record? It will be hidden from lists.')">
+  {% csrf_token %}<button class="danger">Archive</button>
+</form>
+{% endif %}
+{% endblock %}

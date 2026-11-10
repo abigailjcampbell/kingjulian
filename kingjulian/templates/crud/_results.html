@@ -1,0 +1,22 @@
+{% load crud_extras %}
+<table>
+  <thead><tr>{% for label, _ in columns %}<th>{{ label }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for obj in object_list %}
+    <tr>
+      {% for label, path in columns %}
+        <td>{% if forloop.first and link_rows %}<a href="{% url edit_url_name obj.pk %}">{{ obj|cell:path }}</a>{% else %}{{ obj|cell:path }}{% endif %}</td>
+      {% endfor %}
+    </tr>
+  {% empty %}
+    <tr><td colspan="{{ columns|length }}">Nothing here yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if is_paginated %}
+<div class="pager">
+  {% if page_obj.has_previous %}<a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">← Prev</a>{% endif %}
+  <span>Page {{ page_obj.number }} of {{ paginator.num_pages }} ({{ paginator.count }} total)</span>
+  {% if page_obj.has_next %}<a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Next →</a>{% endif %}
+</div>
+{% endif %}
