@@ -1,0 +1,37 @@
+# Development only. `docker compose up` -> http://localhost:8000
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: propmgr
+      POSTGRES_PASSWORD: propmgr
+      POSTGRES_DB: propmgr
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U propmgr -d propmgr"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DATABASE_URL: postgres://propmgr:propmgr@db:5432/propmgr
+      DJANGO_DEBUG: "1"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      MEDIA_ROOT: /data/media
+      SITE_URL: http://localhost:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app                  # live code reload: edit files on your machine, the server restarts
+      - media:/data/media       # uploaded files survive container restarts
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  media:
