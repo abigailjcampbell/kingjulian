@@ -46,12 +46,25 @@ class TenantViewMixin(LoginRequiredMixin):
 
 class TenantListView(TenantViewMixin, ListView):
     title = ""
+    export_key = None
     columns: list = []               # [(label, "attr.path"), ...]; first column links to edit
     search_fields: tuple = ()
     filters: list = []
     paginate_by = 25
     template_name = "crud/list.html"
     partial_template_name = "crud/_results.html"
+
+    def get(self, request, *args, **kwargs):
+        if request.GET.get("export") == "csv" and self.export_key:
+            return self.export_csv()
+        return super().get(request, *args, **kwargs)
+
+    def export_csv(self):
+        """Download exactly what the list is showing (filters and search applied, no pagination)."""
+        if not self.request.membership.can_write:
+            raise PermissionDenied("Exporting needs an owner or manager role.")
+        from exports.responses import csv_response      # imported here so core never depends on exports at import time
+        return csv_response(self.export_key, self.get_queryset(), self.request.account)
 
     def get_template_names(self):
         return [self.partial_template_name if self.request.headers.get("HX-Request") else self.template_name]
@@ -91,6 +104,8 @@ class TenantListView(TenantViewMixin, ListView):
             ],
             create_url=self.url("create") if self.has_create else None,
             link_rows=self.request.membership.can_write or self.viewers_can_open,
+            export_url=("?" + (params.urlencode() + "&" if params else "") + "export=csv")
+            if self.export_key and self.request.membership.can_write else None,
             edit_url_name=f"{self.url_basename}_edit",
         )
         return ctx

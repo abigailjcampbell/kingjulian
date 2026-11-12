@@ -10,6 +10,7 @@ class InventoryList(TenantListView):
     model = InventoryItem
     url_basename = "inventoryitem"
     title = "Inventory"
+    export_key = "inventory"
     columns = [("Item", "name"), ("Property", "property.name"), ("Unit", "unit.name"),
                ("Category", "get_category_display"), ("Qty", "quantity"),
                ("Condition", "get_condition_display"), ("Warranty ends", "warranty_expires_on")]

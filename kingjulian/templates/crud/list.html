@@ -15,7 +15,8 @@
     </select>
   {% endfor %}
   <noscript><button>Filter</button></noscript>
-  {% if create_url and request.membership.can_write %}<a class="btn" href="{{ create_url }}" style="margin-left:auto">+ New</a>{% endif %}
+  {% if export_url %}<a class="btn secondary" href="{{ export_url }}" style="margin-left:auto">Export CSV</a>{% endif %}
+  {% if request.membership.can_write %}<a class="btn" href="{{ create_url }}">+ New</a>{% endif %}
 </form>
 <div id="results">{% include "crud/_results.html" %}</div>
 {% endblock %}

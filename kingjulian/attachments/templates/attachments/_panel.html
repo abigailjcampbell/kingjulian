@@ -1,0 +1,33 @@
+{% if show %}
+<style>
+  .files { margin-top:1.6rem; background:#fff; border:1px solid var(--line); border-radius:8px; padding:.9rem 1rem; max-width:720px; }
+  .files h2 { font-size:1rem; margin:0 0 .5rem; } .files ul { list-style:none; margin:0; padding:0; }
+  .files li { display:flex; gap:.7rem; align-items:center; padding:.4rem 0; border-top:1px solid var(--line); } .files li:first-child { border-top:0; }
+  .files .thumb { width:48px; height:48px; object-fit:cover; border-radius:4px; border:1px solid var(--line); }
+  .files .meta { color:var(--muted); font-size:.82rem; } .files form { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.7rem; }
+</style>
+<section class="files">
+  <h2>Files</h2>
+  <ul>
+    {% for a in items %}
+      <li>
+        {% if a.is_inline_safe %}<a href="{% url 'attachment_edit' a.pk %}"><img class="thumb" loading="lazy" src="{% url 'attachment_view' a.pk %}" alt=""></a>{% endif %}
+        <span style="flex:1"><a href="{% url 'attachment_edit' a.pk %}">{{ a.original_name }}</a>
+          {% if a.caption %}<br><em>{{ a.caption }}</em>{% endif %}
+          <br><span class="meta">{{ a.size_label }} · {{ a.created_at|date:"M j, Y" }}{% if a.uploaded_by %} · {{ a.uploaded_by.email }}{% endif %}</span></span>
+        <a href="{% url 'attachment_download' a.pk %}">Download</a>
+      </li>
+    {% empty %}<li class="meta">No files yet.</li>{% endfor %}
+  </ul>
+  {% if can_write %}
+  <form method="post" enctype="multipart/form-data" action="{% url 'attachment_upload' kind obj.pk %}">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <input type="file" name="file" required accept="{{ accept }}">
+    <input type="text" name="caption" maxlength="200" placeholder="Caption (optional)">
+    <button type="submit">Upload</button>
+    <span class="meta" style="align-self:center">Photos, PDFs, Word/Excel, text/CSV · up to {{ limit }}</span>
+  </form>
+  {% endif %}
+</section>
+{% endif %}

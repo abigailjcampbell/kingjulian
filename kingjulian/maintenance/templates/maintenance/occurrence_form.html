@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load attachment_tags audit_tags %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
 {% with task=object.task %}
@@ -28,4 +28,6 @@
   <a class="btn secondary" href="{{ list_url }}">Back</a>
 </form>
 {% endwith %}
+{% attachments_panel object %}
+{% history_panel object %}
 {% endblock %}

@@ -32,6 +32,7 @@ class EventList(TenantListView):
     model = Event
     url_basename = "event"
     title = "Events"
+    export_key = "events"
     columns = [("Event", "title"), ("Date", "date_label"), ("Time", "time_label"), ("Type", "get_kind_display"),
                ("Property", "property.name"), ("With", "contact.name")]
     search_fields = ("title", "notes", "property__name", "contact__name")

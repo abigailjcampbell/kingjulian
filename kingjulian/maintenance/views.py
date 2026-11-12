@@ -27,6 +27,7 @@ class TaskList(TenantListView):
     model = MaintenanceTask
     url_basename = "task"
     title = "Maintenance tasks"
+    export_key = "tasks"
     columns = [("Task", "title"), ("Property", "property.name"), ("Item", "item.name"),
                ("Repeats", "schedule_label"), ("Next due", "next_due"), ("Assigned to", "assigned_contact.name")]
     search_fields = ("title", "description", "property__name", "item__name", "assigned_contact__name")
@@ -63,6 +64,7 @@ class OccurrenceList(TenantListView):
     model = TaskOccurrence
     url_basename = "occurrence"
     title = "Maintenance"
+    export_key = "history"
     has_create = False
     viewers_can_open = True
     columns = [("Due", "due_date"), ("When", "due_label"), ("Task", "task.title"),

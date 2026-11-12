@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Export data{% endblock %}
+{% block content %}
+<h1>Export data</h1>
+<p>Download your records as CSV (opens in Excel, Numbers, Google Sheets). These include archived records; each list page also has an
+   <strong>Export CSV</strong> button that exports exactly what you are filtering.</p>
+<table style="max-width:760px">
+  <thead><tr><th>Dataset</th><th>Rows</th><th></th></tr></thead>
+  <tbody>
+  {% for d, count in datasets %}
+    <tr><td>{{ d.title }}{% if d.description %}<br><span style="color:var(--muted);font-size:.85rem">{{ d.description }}</span>{% endif %}</td>
+        <td>{{ count }}</td><td><a class="btn secondary" href="{% url 'export_dataset' d.key %}">Download CSV</a></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p style="margin-top:1rem"><a class="btn" href="{% url 'export_all' %}">Download everything (.zip)</a></p>
+<p style="color:var(--muted);font-size:.85rem">Each export is recorded in the activity log. Uploaded files are not included in exports.</p>
+{% endblock %}

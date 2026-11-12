@@ -9,6 +9,7 @@ class ContactList(TenantListView):
     model = Contact
     url_basename = "contact"
     title = "Contacts"
+    export_key = "contacts"
     columns = [("Name", "name"), ("Role", "get_role_display"), ("Company", "company"),
                ("Phone", "phone"), ("Email", "email")]
     search_fields = ("name", "company", "email", "phone", "notes")

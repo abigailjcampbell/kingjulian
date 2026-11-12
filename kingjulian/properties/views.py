@@ -13,6 +13,7 @@ class PropertyList(TenantListView):
     model = Property
     url_basename = "property"
     title = "Properties"
+    export_key = "properties"
     columns = [("Name", "name"), ("Type", "get_property_type_display"),
                ("Address", "address_line1"), ("City", "city"), ("State", "state")]
     search_fields = ("name", "address_line1", "city", "postal_code", "notes")
@@ -35,6 +36,7 @@ class UnitList(TenantListView):
     model = Unit
     url_basename = "unit"
     title = "Units"
+    export_key = "units"
     columns = [("Unit", "name"), ("Property", "property.name"), ("Notes", "notes")]
     search_fields = ("name", "property__name", "notes")
     filters = [Filter("property", "property_id", "Property", _property_choices)]

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% load attachment_tags audit_tags %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
 <h1>{{ title }}</h1>
@@ -15,4 +15,6 @@
   {% csrf_token %}<button class="danger">Archive</button>
 </form>
 {% endif %}
+{% attachments_panel object %}
+{% history_panel object %}
 {% endblock %}

@@ -23,10 +23,14 @@ INSTALLED_APPS = [
     "inventory",
     "maintenance",
     "planner",
+    "attachments",
+    "audit.apps.AuditConfig",
+    "exports",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "attachments.middleware.UploadSizeMiddleware",     # must precede CsrfViewMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -35,6 +39,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # Must come after authentication: resolves the active account and sets the tenant context.
     "core.middleware.ActiveAccountMiddleware",
+    "audit.middleware.ActorMiddleware",                 # who is acting, for the activity log
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -85,3 +90,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Property Manager <noreply@localhost>")
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")   # used for links inside emails
+
+# Uploaded files live outside any web-served path; they are only ever sent by the authenticated download views.
+MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", BASE_DIR / "media"))
+ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024            # per file
+ATTACHMENT_ACCOUNT_QUOTA_BYTES = 500 * 1024 * 1024  # per account
+ATTACHMENT_MAX_PER_TARGET = 50                      # files per property/item/task/...
+FILE_UPLOAD_PERMISSIONS = 0o640                    # stored files: owner read/write, group read, nobody else
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o750
