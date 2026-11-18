@@ -129,5 +129,5 @@ class AttachmentDetail(TenantViewMixin, TemplateView):
         att = get_object_or_404(Attachment.objects.select_related("uploaded_by", "occurrence__task"), pk=self.kwargs["pk"])
         can_write = self.request.membership.can_write
         ctx.update(a=att, can_write=can_write,
-                   target_url=_target_page(att) if (can_write or att.target_kind == "occurrence") else None)
+                   target_url=_target_page(att))                      # every role can open a record's read-only page
         return ctx

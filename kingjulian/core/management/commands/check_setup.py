@@ -52,6 +52,10 @@ def build_checks():
     add("permanent delete is wired up", lambda: bool(mod("archive.delete_views")) and bool(mod("archive.deletion")) and bool(reverse("archive_delete", args=["contact", 1])), "Permanent-delete patch, section 1: add the archive_delete path (and the delete_views import) to archive/urls.py; unzip the new files.")
     add("TenantArchiveView offers an Undo link", lambda: hasattr(mod("core.crud").TenantArchiveView, "archived_message"), "Archive patch, section 3: replace TenantArchiveView.post and add archived_message.")
     add("attachments panel hides uploads on archived records", lambda: source_has(mod("attachments.templatetags.attachment_tags").attachments_panel, "archived_at"), "Archive patch, section 5: replace attachments_panel in attachments/templatetags/attachment_tags.py.")
+    add("list rows open read-only pages", lambda: hasattr(L(), "row_url_name"), "Read-only pages patch, section 3: add row_url_name and use it in TenantListView.get_context_data.")
+    add("editing returns to the record", lambda: hasattr(F(), "cancel_url") and source_has(mod("core.crud").TenantUpdateView.get_success_url, "cancel_url"), "Read-only pages patch, section 3: add TenantFormMixin.cancel_url and TenantUpdateView.get_success_url.")
+    add("units live under their property", lambda: hasattr(mod("properties.views"), "PropertyUnits") and not hasattr(mod("properties.views"), "UnitList"), "Units patch, section 5: replace UnitList with PropertyUnits (and the unit form/archive views) in properties/views.py.")
+    add("TenantArchiveView.after_archive_url", lambda: hasattr(mod("core.crud").TenantArchiveView, "after_archive_url"), "Units patch, section 2: add after_archive_url to TenantArchiveView and use it in post.")
     add("TenantFormMixin.get_list_url", lambda: hasattr(F(), "get_list_url"), "Units patch, section 2: add get_list_url to TenantFormMixin and use it for list_url, get_success_url and cancel_url.")
     add("TenantListView.get_create_url and back link", lambda: hasattr(L(), "get_create_url") and hasattr(L(), "back_url"), "Units patch, section 2: add back_url/back_label, get_create_url and the new context keys to TenantListView.")
     add("TenantFormMixin.archivable", lambda: hasattr(F(), "archivable"), "Step 3: add `archivable = True` under `requires_write = True` in TenantFormMixin.")
@@ -69,7 +73,7 @@ def build_checks():
             f"Step 5, section 4: add `export_key = \"{key}\"` to class {cls} in {module.replace('.', '/')}.py (if the module itself fails to import, see the error shown).")
 
     # ---- settings --------------------------------------------------------------------------------
-    for app in ("accounts", "core", "properties", "contacts", "inventory", "maintenance", "planner", "attachments", "audit", "exports", "archive"):
+    for app in ("accounts", "core", "properties", "contacts", "inventory", "maintenance", "planner", "attachments", "audit", "exports", "archive", "details"):
         add(f"INSTALLED_APPS has {app}", lambda a=app: apps.is_installed(a), f"Add \"{app}\" to INSTALLED_APPS (audit may be \"audit.apps.AuditConfig\").")
     mw = list(settings.MIDDLEWARE)
     idx = lambda name: mw.index(name) if name in mw else -1
@@ -91,7 +95,7 @@ def build_checks():
     add("URLconf imports cleanly", lambda: bool(importlib.import_module(settings.ROOT_URLCONF)),
         "Importing the URL configuration fails. Read the error shown: it names the module that cannot load, which is usually a missing patch in that module's dependencies (for example the Filter dataclass).")
     for name in ("home", "property_list", "property_units", "contact_list", "inventoryitem_list", "task_list", "occurrence_list", "event_list", "calendar",
-                 "agenda", "calendar_ics", "attachment_list", "activity_list", "export_hub", "archive_list"):
+                 "agenda", "calendar_ics", "attachment_list", "activity_list", "export_hub", "archive_list", "property_detail", "unit_detail", "inventoryitem_detail", "contact_detail", "task_detail", "event_detail", "account_settings", "switch_account"):
         def resolves(n=name):
             for args in ([], [1]):                      # most routes take no argument; detail routes take an id
                 try:
@@ -111,6 +115,9 @@ def build_checks():
     add("crud/list.html back link", t("crud/list.html", "back_url"), "Units patch, section 7: add the back_url line above <h1> in templates/crud/list.html.")
     add("record page section Add button", t("details/detail.html", "add_url"), "Units patch, section 4: update templates/details/detail.html (h2 with add_url, empty_text).")
     add("crud/_results.html link_rows", t("crud/_results.html", "link_rows"), "Step 3, section 6: use `forloop.first and link_rows` in templates/crud/_results.html.")
+    add("crud/form.html Cancel returns to the record", t("crud/form.html", "cancel_url"), "Read-only pages patch, section 4: use `cancel_url|default:list_url` for the Cancel link in templates/crud/form.html (and remove the Files/History panels from it).")
+    add("record page has the Files and History panels", t("details/detail.html", "attachments_panel", "history_panel"), "Unzip the details app (details/templates/details/detail.html).")
+    add("dashboard links to read-only item pages", t("planner/dashboard.html", "inventoryitem_detail", "event_detail"), "Read-only pages patch, section 6: link events and inventory items on the dashboard to their *_detail pages.")
     add("occurrence_form.html panels", t("maintenance/occurrence_form.html", "attachments_panel", "history_panel"), "Step 5, section 5: add the {% load %} line and the two panel tags to maintenance/templates/maintenance/occurrence_form.html.")
     add("signup.html timezone script", t("accounts/signup.html", "Intl.DateTimeFormat"), "Timezone patch, section 10: add the script to templates/accounts/signup.html.")
 

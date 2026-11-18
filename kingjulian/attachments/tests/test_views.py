@@ -21,7 +21,7 @@ class UploadTests(FilesWorld):
 
     def test_owner_uploads_and_lands_back_on_the_record_with_a_thumbnail(self):
         r = self.post_file("property", self.maple.pk, "kitchen leak.png", png(), caption="Under the sink", follow=True)
-        self.assertEqual(r.redirect_chain[-1][0], f"/properties/{self.maple.pk}/")
+        self.assertEqual(r.redirect_chain[-1][0], f"/properties/{self.maple.pk}/view/")
         self.assertContains(r, "Uploaded kitchen leak.png.")
         att = Attachment.all_tenants.get()
         self.assertEqual((att.account_id, att.caption, att.uploaded_by, att.content_type), (self.acme.pk, "Under the sink", self.alice, "image/png"))
@@ -90,7 +90,7 @@ class UploadTests(FilesWorld):
     def test_next_parameter_cannot_redirect_off_site(self):
         for bad in ("https://evil.example/", "//evil.example/x", "javascript:alert(1)", "http://testserver.evil.com/"):
             r = self.post_file("property", self.maple.pk, "a.png", png(), fields={"next": bad})
-            self.assertEqual(r["Location"], f"/properties/{self.maple.pk}/", bad)
+            self.assertEqual(r["Location"], f"/properties/{self.maple.pk}/view/", bad)
         r = self.post_file("property", self.maple.pk, "a.png", png(), fields={"next": "/contacts/"})
         self.assertEqual(r["Location"], "/contacts/")
 
@@ -182,7 +182,7 @@ class DeleteTests(FilesWorld):
     def test_writer_deletes_row_and_file_and_returns_to_the_record(self):
         with self.captureOnCommitCallbacks(execute=True):
             r = self.client.post(f"/files/{self.att.pk}/delete/")
-        self.assertRedirects(r, f"/properties/{self.maple.pk}/", fetch_redirect_response=False)
+        self.assertRedirects(r, f"/properties/{self.maple.pk}/view/", fetch_redirect_response=False)
         self.assertEqual((Attachment.all_tenants.count(), self.disk()), (0, []))
 
     def test_viewers_other_tenants_and_get_requests_cannot_delete(self):
@@ -199,12 +199,13 @@ class PagesTests(FilesWorld):
         for text in ("kitchen.png", "After repair", "image/png", att.sha256, "Maple Duplex", "Delete", f'src="/files/{att.pk}/view/"'):
             self.assertContains(r, text)
 
-    def test_viewer_sees_the_page_without_delete_and_without_links_they_cannot_open(self):
+    def test_viewer_sees_the_page_without_delete_and_with_links_only_to_pages_they_can_open(self):
         on_property = self.store(self.maple, "a.png", png())
         occ = self.occ(self.acme, self.maple, "Pump", self.TODAY); on_occ = self.store(occ, "b.png", png())
         self.login(self.vic)
         r = self.client.get(f"/files/{on_property.pk}/")
-        self.assertNotContains(r, "Delete"); self.assertNotContains(r, "open record")
+        self.assertNotContains(r, "Delete"); self.assertContains(r, f'href="/properties/{self.maple.pk}/view/"')       # the read-only page, not the edit page
+        self.assertNotContains(r, f'href="/properties/{self.maple.pk}/"')
         r = self.client.get(f"/files/{on_occ.pk}/")
         self.assertContains(r, f'href="/maintenance/{occ.pk}/"'); self.assertNotContains(r, "Delete")
 
@@ -239,13 +240,23 @@ class PanelTests(FilesWorld):
     def test_panel_appears_on_every_record_page_for_writers(self):
         occ = self.occ(self.acme, self.maple, "Pump", self.TODAY); ev = self.event(self.acme, "Inspection", self.TODAY)
         self.login(self.alice)
-        pages = {f"/properties/{self.maple.pk}/": "property", f"/inventory/{self.heater.pk}/": "item",
-                 f"/contacts/{self.plumber.pk}/": "contact", f"/planner/events/{ev.pk}/": "event",
-                 f"/maintenance/tasks/{occ.task.pk}/": "task", f"/maintenance/{occ.pk}/": "occurrence"}
-        for url, kind in pages.items():
-            r = self.client.get(url); pk = url.rstrip("/").rsplit("/", 1)[1]
-            self.assertContains(r, "<h2>Files</h2>"); self.assertContains(r, f'action="/files/upload/{kind}/{pk}/"', msg_prefix=url)
+        pages = ((f"/properties/{self.maple.pk}/view/", "property", self.maple.pk), (f"/inventory/{self.heater.pk}/view/", "item", self.heater.pk),
+                 (f"/contacts/{self.plumber.pk}/view/", "contact", self.plumber.pk), (f"/planner/events/{ev.pk}/view/", "event", ev.pk),
+                 (f"/maintenance/tasks/{occ.task.pk}/view/", "task", occ.task.pk), (f"/maintenance/{occ.pk}/", "occurrence", occ.pk))
+        for url, kind, pk in pages:
+            r = self.client.get(url)
+            self.assertContains(r, "<h2>Files</h2>", msg_prefix=url); self.assertContains(r, f'action="/files/upload/{kind}/{pk}/"', msg_prefix=url)
             self.assertContains(r, 'accept=".csv,.docx')
+
+    def test_edit_pages_are_just_the_form_without_the_files_panel(self):
+        self.login(self.alice)
+        for url in (f"/properties/{self.maple.pk}/", f"/contacts/{self.plumber.pk}/", f"/inventory/{self.heater.pk}/"):
+            self.assertNotContains(self.client.get(url), "<h2>Files</h2>", msg_prefix=url)
+
+    def test_viewers_can_see_files_on_a_records_read_only_page_but_not_upload(self):
+        self.store(self.maple, "deed.png", png()); self.login(self.vic)
+        r = self.client.get(f"/properties/{self.maple.pk}/view/")
+        self.assertContains(r, "deed.png"); self.assertNotContains(r, 'type="file"')
 
     def test_no_panel_on_create_pages(self):
         self.login(self.alice)

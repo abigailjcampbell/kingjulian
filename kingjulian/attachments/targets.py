@@ -15,8 +15,8 @@ TARGETS = {                       # url kind -> (model, Attachment field)
 }
 FIELDS = tuple(field for _, field in TARGETS.values())
 KIND_BY_MODEL = {model: kind for kind, (model, _) in TARGETS.items()}
-EDIT_URL_NAME = {"property": "property_edit", "item": "inventoryitem_edit", "task": "task_edit",
-                 "occurrence": "occurrence_edit", "contact": "contact_edit", "event": "event_edit"}
+EDIT_URL_NAME = {"property": "property_detail", "item": "inventoryitem_detail", "task": "task_detail",   # where "the record" is: its read-only page
+                 "occurrence": "occurrence_edit", "contact": "contact_detail", "event": "event_detail"}
 
 
 def kind_for(obj):

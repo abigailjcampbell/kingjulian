@@ -53,7 +53,7 @@ class ConfirmPageTests(ConfirmBase):
     def test_a_blocked_record_shows_what_is_in_the_way_and_offers_no_delete_form(self):
         objs = self.make_all(); prop = self.archived(objs["property"])
         r = self.client.get(self.url("property", prop))
-        for text in ("It can't be deleted yet", "1 unit", "1 inventory item", "1 maintenance task", "1 event", f'href="/properties/units/{objs["unit"].pk}/"'):
+        for text in ("It can't be deleted yet", "1 unit", "1 inventory item", "1 maintenance task", "1 event", f'href="/properties/units/{objs["unit"].pk}/view/"'):
             self.assertContains(r, text)
         self.assertNotContains(r, 'name="confirm"'); self.assertNotContains(r, "Permanently delete</button>")
         with use_account(self.acme):
@@ -69,8 +69,8 @@ class ConfirmPageTests(ConfirmBase):
 
     def test_active_records_are_sent_back_to_their_live_page_with_an_explanation(self):
         objs = self.make_all()
-        live = {"property": "/properties/{}/", "unit": "/properties/units/{}/", "item": "/inventory/{}/", "contact": "/contacts/{}/",
-                "task": "/maintenance/tasks/{}/", "event": "/planner/events/{}/"}
+        live = {"property": "/properties/{}/view/", "unit": "/properties/units/{}/view/", "item": "/inventory/{}/view/", "contact": "/contacts/{}/view/",
+                "task": "/maintenance/tasks/{}/view/", "event": "/planner/events/{}/view/"}
         for key, pattern in live.items():
             r = self.client.get(self.url(key, objs[key]), follow=True)
             self.assertEqual(r.redirect_chain[-1][0], pattern.format(objs[key].pk), key)

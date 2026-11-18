@@ -93,14 +93,14 @@ class FeedTests(PlannerWorld):
         self.assertNotIn("beta-item", mine); self.assertNotIn("acme-item", theirs); self.assertNotIn("ACME", theirs)
         self.assertEqual(len(self.feed(D(2026, 11, 1), D(2026, 11, 30), account=self.beta)), 3)
 
-    def test_links_only_where_the_user_can_open_the_page(self):
-        self.event(self.acme, "e", D(2026, 11, 12)); self.occ(self.acme, self.maple, "t", D(2026, 11, 12))
-        self.item(self.acme, self.maple, "i", warranty_expires_on=D(2026, 11, 12))
+    def test_every_entry_links_to_a_page_every_role_can_open_never_to_an_edit_page(self):
+        ev = self.event(self.acme, "e", D(2026, 11, 12)); occ = self.occ(self.acme, self.maple, "t", D(2026, 11, 12))
+        it = self.item(self.acme, self.maple, "i", warranty_expires_on=D(2026, 11, 12))
         viewer = {e.kind: e.url for e in self.feed(D(2026, 11, 1), D(2026, 11, 30), can_write=False)}
         writer = {e.kind: e.url for e in self.feed(D(2026, 11, 1), D(2026, 11, 30), can_write=True)}
-        self.assertEqual((viewer["event"], viewer["warranty"]), (None, None))
-        self.assertTrue(viewer["task"].startswith("/maintenance/"))
-        self.assertTrue(all(writer.values()))
+        self.assertEqual(viewer, writer)
+        self.assertEqual(writer, {"event": f"/planner/events/{ev.pk}/view/", "warranty": f"/inventory/{it.pk}/view/",
+                                  "task": f"/maintenance/{occ.pk}/"})
 
     def test_identical_items_are_told_apart_by_unit(self):
         with use_account(self.acme):

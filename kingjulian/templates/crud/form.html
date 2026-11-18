@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% load attachment_tags audit_tags %}
+{% extends "base.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
 <h1>{{ title }}</h1>
@@ -7,7 +7,7 @@
   {{ form.non_field_errors }}
   {{ form.as_div }}
   <button type="submit">Save</button>
-  <a class="btn secondary" href="{{ list_url }}">Cancel</a>
+  <a class="btn secondary" href="{{ cancel_url|default:list_url }}">Cancel</a>
 </form>
 {% if archive_url and request.membership.can_write %}
 <form method="post" action="{{ archive_url }}" style="margin-top:1.5rem"
@@ -15,6 +15,4 @@
   {% csrf_token %}<button class="danger">Archive</button>
 </form>
 {% endif %}
-{% attachments_panel object %}
-{% history_panel object %}
 {% endblock %}

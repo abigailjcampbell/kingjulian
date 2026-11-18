@@ -158,7 +158,7 @@ class OccurrencePageTests(ViewBase):
         r = self.client.get(f"/maintenance/{self.late_occ.pk}/")
         self.assertEqual(r.status_code, 200)
         for needle in ("Flush water heater", "Maple Duplex", "Water Heater 50gal", "Yearly", "Dana Pipes",
-                       "10 days overdue", "Mark complete", "Skip this time", "Edit task", ">Save<"):
+                       "10 days overdue", "Mark complete", "Skip this time", "Task details", ">Save<"):
             self.assertContains(r, needle)
         self.assertNotContains(r, ">Archive</button>")  
 

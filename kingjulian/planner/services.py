@@ -59,7 +59,7 @@ def calendar_entries(start: date, end: date, *, today: date, can_write: bool) ->
         detail = "\n".join(filter(None, [f"With: {ev.contact.name}" if ev.contact else "", ev.notes]))
         out.append(Entry("event", f"event-{ev.pk}", ev.title, ev.starts_on, ev.last_day, ev.start_time, ev.end_time,
                          ev.property.name if ev.property else "",
-                         reverse("event_edit", args=[ev.pk]) if can_write else None,
+                         reverse("event_detail", args=[ev.pk]),
                          "", detail, ev.get_kind_display()))
 
     occurrences = (TaskOccurrence.objects
@@ -79,7 +79,7 @@ def calendar_entries(start: date, end: date, *, today: date, can_write: bool) ->
         where = " / ".join(filter(None, [it.property.name, it.unit.name if it.unit else ""]))   # tells identical items apart
         out.append(Entry("warranty", f"warranty-{it.pk}", f"Warranty ends: {it.name}", it.warranty_expires_on,
                          it.warranty_expires_on, None, None, where,
-                         reverse("inventoryitem_edit", args=[it.pk]) if can_write else None, status, detail, "Warranty"))
+                         reverse("inventoryitem_detail", args=[it.pk]), status, detail, "Warranty"))
 
     return sorted(out, key=_sort_key)
 

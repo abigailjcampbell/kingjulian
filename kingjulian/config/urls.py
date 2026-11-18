@@ -15,4 +15,5 @@ urlpatterns = [
     path("activity/", include("audit.urls")),
     path("exports/", include("exports.urls")),
     path("archive/", include("archive.urls")),
+    path("", include("details.urls")),
 ]

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load attachment_tags audit_tags %}
+{% block title %}{{ name }}{% endblock %}
+{% block content %}
+<style>
+  .rel { margin-top:1.2rem; background:#fff; border:1px solid var(--line); border-radius:8px; padding:.8rem 1rem; max-width:720px; }
+  .rel h2 { font-size:1rem; margin:0 0 .4rem; display:flex; justify-content:space-between; align-items:baseline; } .rel h2 small { color:var(--muted); font-weight:400; }
+  .rel ul { list-style:none; margin:0; padding:0; } .rel li { padding:.35rem 0; border-top:1px solid var(--line); } .rel li:first-child { border-top:0; }
+  .rel .sub { color:var(--muted); font-size:.85rem; display:block; }
+</style>
+<h1>{{ name }} <small style="color:var(--muted);font-weight:400">· {{ kind.label|lower }}</small></h1>
+<div class="toolbar">
+  {% if can_write %}<a class="btn" href="{{ edit_url }}">Edit</a>{% endif %}
+  <a class="btn secondary" href="{{ list_url }}">Back to {{ list_title|lower }}</a>
+  {% if can_write %}
+  <form method="post" action="{{ archive_url }}" style="margin:0 0 0 auto" onsubmit="return confirm('Archive this record? It will be hidden from lists, and you can restore it from the Archive page.')">
+    {% csrf_token %}<button class="secondary">Archive</button>
+  </form>
+  {% endif %}
+</div>
+
+<table style="max-width:720px">
+  {% for label, value, url in fields %}
+    <tr><th style="width:12rem">{{ label }}</th><td>{% if url and value %}<a href="{{ url }}">{{ value }}</a>{% else %}{{ value|default:"—"|linebreaksbr }}{% endif %}</td></tr>
+  {% endfor %}
+</table>
+
+{% for s in sections %}
+<section class="rel">
+  <h2>{{ s.title }} <small>{{ s.total }}</small></h2>
+  <ul>
+    {% for r in s.rows %}<li>{% if r.url %}<a href="{{ r.url }}">{{ r.text }}</a>{% else %}{{ r.text }}{% endif %}{% if r.sub %}<span class="sub">{{ r.sub }}</span>{% endif %}</li>{% endfor %}
+  </ul>
+  {% if s.more_url %}<p style="margin:.5rem 0 0"><a href="{{ s.more_url }}">See all {{ s.total }} →</a></p>{% endif %}
+</section>
+{% endfor %}
+
+{% attachments_panel obj %}
+{% history_panel obj %}
+{% endblock %}

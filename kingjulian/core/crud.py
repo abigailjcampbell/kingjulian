@@ -52,6 +52,8 @@ class TenantListView(TenantViewMixin, ListView):
     search_fields: tuple = ()
     filters: list = []
     paginate_by = 25
+    has_create = True                
+    viewers_can_open = False 
     template_name = "crud/list.html"
     partial_template_name = "crud/_results.html"
 
@@ -104,26 +106,47 @@ class TenantListView(TenantViewMixin, ListView):
                 for f in self.filters
             ],
             create_url=self.url("create") if self.has_create else None,
-            link_rows=self.request.membership.can_write or self.viewers_can_open,
+            link_rows=self.request.membership.can_write or self.viewers_can_open or self.row_url_name()[1],
             export_url=("?" + (params.urlencode() + "&" if params else "") + "export=csv")
             if self.export_key and self.request.membership.can_write else None,
-            edit_url_name=f"{self.url_basename}_edit",
+            edit_url_name=self.row_url_name()[0],
         )
         return ctx
+
+    def row_url_name(self):
+        """(url name, is_detail): rows open the record's read-only page when it has one, else its edit/action page."""
+        name = f"{self.url_basename}_detail"
+        try:
+            reverse(name, args=[0])
+            return name, True
+        except NoReverseMatch:
+            return f"{self.url_basename}_edit", False
 
 
 class TenantFormMixin(TenantViewMixin):
     requires_write = True
+    archivable = True
     template_name = "crud/form.html"
     title = ""
 
     def get_success_url(self):
         return self.url("list")
 
+    def cancel_url(self):
+        """Back to the record's read-only page when editing one, otherwise to the list."""
+        obj = getattr(self, "object", None)
+        if obj is not None and obj.pk:
+            try:
+                return reverse(f"{self.url_basename}_detail", args=[obj.pk])
+            except NoReverseMatch:
+                pass
+        return self.url("list")
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["title"] = self.title
         ctx["list_url"] = self.url("list")
+        ctx["cancel_url"] = self.cancel_url()
         if self.archivable and getattr(self, "object", None) and self.object.pk:
             ctx["archive_url"] = self.url("archive", self.object.pk)
         return ctx
@@ -144,6 +167,8 @@ class TenantUpdateView(TenantFormMixin, UpdateView):
     def get_queryset(self):
         return self.model.objects.active()   # tenant-scoped: other accounts' pks 404
 
+    def get_success_url(self):
+        return self.cancel_url()             # after saving, show the record again
 
 class TenantArchiveView(TenantViewMixin, View):
     requires_write = True

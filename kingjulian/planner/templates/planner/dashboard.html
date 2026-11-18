@@ -40,23 +40,23 @@
 
   <section class="panel"><h2>Upcoming events <small><a href="{% url 'calendar' %}">calendar →</a></small></h2>
     <ul>{% for e in d.events_upcoming %}
-      <li><span>{% if request.membership.can_write %}<a href="{% url 'event_edit' e.pk %}">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}<br><span class="sub">{{ e.property.name|default:"" }}{% if e.property %} · {% endif %}{{ e.time_label }}</span></span><span class="soon">{{ e.date_label }}</span></li>
+      <li><span><a href="{% url 'event_detail' e.pk %}">{{ e.title }}</a><br><span class="sub">{{ e.property.name|default:"" }}{% if e.property %} · {% endif %}{{ e.time_label }}</span></span><span class="soon">{{ e.date_label }}</span></li>
     {% empty %}<li class="empty">No events in the next 14 days.</li>{% endfor %}</ul>
   </section>
 
   <section class="panel"><h2>Warranties ending <small>next 60 days</small></h2>
     <ul>{% for i in d.warranties_expiring %}
-      <li><span>{% if request.membership.can_write %}<a href="{% url 'inventoryitem_edit' i.pk %}">{{ i.name }}</a>{% else %}{{ i.name }}{% endif %}<br><span class="sub">{{ i.property.name }}{% if i.unit %} · {{ i.unit.name }}{% endif %}</span></span><span class="soon">{{ i.warranty_expires_on|date:"M j, Y" }}</span></li>
+      <li><span><a href="{% url 'inventoryitem_detail' i.pk %}">{{ i.name }}</a><br><span class="sub">{{ i.property.name }}{% if i.unit %} · {{ i.unit.name }}{% endif %}</span></span><span class="soon">{{ i.warranty_expires_on|date:"M j, Y" }}</span></li>
     {% empty %}<li class="empty">None expiring.</li>{% endfor %}</ul>
     {% if d.warranties_expired %}<h2 style="margin-top:.8rem">Recently expired <small>last 30 days</small></h2>
     <ul>{% for i in d.warranties_expired %}
-      <li><span>{% if request.membership.can_write %}<a href="{% url 'inventoryitem_edit' i.pk %}">{{ i.name }}</a>{% else %}{{ i.name }}{% endif %}<br><span class="sub">{{ i.property.name }}{% if i.unit %} · {{ i.unit.name }}{% endif %}</span></span><span class="late">{{ i.warranty_expires_on|date:"M j, Y" }}</span></li>
+      <li><span><a href="{% url 'inventoryitem_detail' i.pk %}">{{ i.name }}</a><br><span class="sub">{{ i.property.name }}{% if i.unit %} · {{ i.unit.name }}{% endif %}</span></span><span class="late">{{ i.warranty_expires_on|date:"M j, Y" }}</span></li>
     {% endfor %}</ul>{% endif %}
   </section>
 
   <section class="panel"><h2>Needs attention <small>{{ d.attention_count }} item{{ d.attention_count|pluralize }} in poor shape</small></h2>
     <ul>{% for i in d.attention %}
-      <li><span>{% if request.membership.can_write %}<a href="{% url 'inventoryitem_edit' i.pk %}">{{ i.name }}</a>{% else %}{{ i.name }}{% endif %}<br><span class="sub">{{ i.property.name }}{% if i.unit %} · {{ i.unit.name }}{% endif %}</span></span><span class="{% if i.condition == 'replace' %}late{% else %}soon{% endif %}">{{ i.get_condition_display }}</span></li>
+      <li><span><a href="{% url 'inventoryitem_detail' i.pk %}">{{ i.name }}</a><br><span class="sub">{{ i.property.name }}{% if i.unit %} · {{ i.unit.name }}{% endif %}</span></span><span class="{% if i.condition == 'replace' %}late{% else %}soon{% endif %}">{{ i.get_condition_display }}</span></li>
     {% empty %}<li class="empty">Everything is in good shape.</li>{% endfor %}</ul>
   </section>
 

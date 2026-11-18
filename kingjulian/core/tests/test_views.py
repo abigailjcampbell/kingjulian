@@ -233,16 +233,19 @@ class SignupAndFormTests(World):
 
 
 class RowLinkTests(World):
-    def test_viewers_are_not_offered_links_to_pages_that_403(self):
-        edit_links = [f'href="/properties/{self.maple.pk}/"', f'href="/contacts/{self.plumber.pk}/"',
-                      f'href="/inventory/{self.heater.pk}/"']
+    def test_rows_open_the_read_only_page_for_everyone_and_edit_pages_stay_closed_to_viewers(self):
+        cases = (("/properties/", self.maple), ("/contacts/", self.plumber), ("/inventory/", self.heater))
+        for user in (self.alice, self.vic):
+            self.login(user)
+            for list_url, obj in cases:
+                detail, edit = f"{list_url}{obj.pk}/view/", f"{list_url}{obj.pk}/"
+                r = self.client.get(list_url)
+                self.assertContains(r, f'href="{detail}"'); self.assertNotContains(r, f'href="{edit}"')     # rows never jump straight to edit
+                self.assertEqual(self.client.get(detail).status_code, 200, (user.email, detail))
         self.login(self.vic)
-        for url, link in zip(("/properties/", "/contacts/", "/inventory/"), edit_links):
-            self.assertNotContains(self.client.get(url), link)
-            self.assertEqual(self.client.get(link.split('"')[1]).status_code, 403)   # and the page really is forbidden
-        self.client.logout(); self.login(self.alice)
-        for url, link in zip(("/properties/", "/contacts/", "/inventory/"), edit_links):
-            self.assertContains(self.client.get(url), link)
+        for list_url, obj in cases:
+            self.assertEqual(self.client.get(f"{list_url}{obj.pk}/").status_code, 403)                     # the edit page really is forbidden to them
+        self.login(self.alice)
 
     def test_filter_dropdowns_read_naturally(self):
         self.login(self.alice)

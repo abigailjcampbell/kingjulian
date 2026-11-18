@@ -59,9 +59,9 @@ class DashboardPageTests(PlannerWorld):
         self.login(self.vic)
         body = self.client.get("/").content.decode()
         self.assertIn("Samsung Dishwasher", body); self.assertIn("City inspection", body)
-        self.assertNotIn('href="/inventory/', body.replace('href="/inventory/"', ""))      # list page ok, item pages not
-        self.assertNotIn('href="/planner/events/', body)
-        self.assertRegex(body, r'href="/maintenance/\d+/"')                                # occurrence pages are viewable
+        self.assertRegex(body, r'href="/inventory/\d+/view/"'); self.assertRegex(body, r'href="/planner/events/\d+/view/"')   # read-only pages
+        self.assertNotRegex(body, r'href="/inventory/\d+/"'); self.assertNotRegex(body, r'href="/planner/events/\d+/"')        # never an edit page
+        self.assertRegex(body, r'href="/maintenance/\d+/"')   
 
     def test_same_named_items_show_which_unit_they_are_in(self):
         with use_account(self.acme):
@@ -177,7 +177,8 @@ class CalendarPageTests(PlannerWorld):
         body = self.client.get("/planner/").content.decode()
         for t in ("inspection", "pump", "boiler"):
             self.assertIn(t, body)
-        self.assertNotIn(f'href="/planner/events/{ev.pk}/"', body); self.assertNotIn('href="/inventory/', body.replace('href="/inventory/"', ""))
+        self.assertIn(f'href="/planner/events/{ev.pk}/view/"', body); self.assertNotIn(f'href="/planner/events/{ev.pk}/"', body)
+        self.assertRegex(body, r'href="/inventory/\d+/view/"'); self.assertNotRegex(body, r'href="/inventory/\d+/"')
         self.assertIn(f'href="/maintenance/{occ.pk}/"', body)
 
     def test_titles_are_escaped_in_chips_and_tooltips(self):

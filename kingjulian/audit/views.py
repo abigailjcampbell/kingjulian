@@ -16,8 +16,8 @@ User = get_user_model()
 TYPE_LABELS = {"property": "Property", "unit": "Unit", "contact": "Contact", "inventoryitem": "Inventory item",
                "maintenancetask": "Maintenance task", "taskoccurrence": "Maintenance job", "event": "Event",
                "attachment": "File", "export": "Export"}
-JUMP = {"property": "property_edit", "unit": "unit_edit", "contact": "contact_edit", "inventoryitem": "inventoryitem_edit",
-        "maintenancetask": "task_edit", "taskoccurrence": "occurrence_edit", "event": "event_edit"}
+JUMP = {"property": "property_detail", "unit": "unit_detail", "contact": "contact_detail", "inventoryitem": "inventoryitem_detail",
+        "maintenancetask": "task_detail", "taskoccurrence": "occurrence_edit", "event": "event_detail"}
 OBJECT_PARAM = re.compile(r"([a-z]+):([0-9]+)")
 
 

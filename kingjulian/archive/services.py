@@ -1,4 +1,8 @@
 """Rules for bringing a record back."""
+import re
+from datetime import date, datetime, time
+from decimal import Decimal
+
 from django.db import IntegrityError, transaction
 from django.utils.text import capfirst
 
@@ -51,28 +55,39 @@ def restore_record(obj):
     return True
 
 
+def readable_label(f):
+    """'Address line1' -> 'Address line 1'."""
+    return re.sub(r"(?<=[a-z])(\d)$", r" \1", capfirst(str(f.verbose_name)))
+
+
+def readable_value(obj, f, value):
+    if value is None or value == "":
+        return ""
+    if f.choices:
+        return dict(f.flatchoices).get(value, str(value))
+    if f.many_to_one:
+        return str(getattr(obj, f.name))
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+    if isinstance(value, datetime):
+        return f"{value:%b %-d, %Y %-I:%M %p}"
+    if isinstance(value, date):
+        return f"{value:%b %-d, %Y}"
+    if isinstance(value, time):
+        return f"{value:%-I:%M %p}"
+    if isinstance(value, Decimal) and f.get_internal_type() == "DecimalField":
+        return f"${value:,.2f}"
+    if isinstance(value, (list, tuple)):
+        return ", ".join(str(v) for v in value)
+    return str(value)
+
+
 def describe_fields(obj):
-    """[(label, value)] for a read-only view: choice labels, related names, no internal columns."""
+    """[(label, value)] for a read-only view: choice labels, related names, friendly dates and money, no internal columns."""
     kind = kind_of(obj)
     skip = HIDDEN_FIELDS | (kind.skip_fields if kind else frozenset())
-    rows = []
-    for f in obj._meta.concrete_fields:
-        if f.name in skip:
-            continue
-        value = getattr(obj, f.attname)
-        if value is None or value == "":
-            shown = ""
-        elif f.choices:
-            shown = dict(f.flatchoices).get(value, str(value))
-        elif f.many_to_one:
-            shown = str(getattr(obj, f.name))
-        elif isinstance(value, bool):
-            shown = "Yes" if value else "No"
-        elif isinstance(value, (list, tuple)):
-            shown = ", ".join(str(v) for v in value)
-        else:
-            shown = str(value)
-        rows.append((capfirst(str(f.verbose_name)), shown))
+    rows = [(readable_label(f), readable_value(obj, f, getattr(obj, f.attname)))
+            for f in obj._meta.concrete_fields if f.name not in skip]
     if kind:
         rows += kind.extra(obj)
     return rows

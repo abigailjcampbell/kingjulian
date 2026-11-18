@@ -98,7 +98,7 @@ class JumpTests(FeedBase):
     def test_jump_opens_the_record_if_it_still_exists(self):
         self.login(self.alice)
         e = self.entry(target_type="property", action="created")
-        self.assertRedirects(self.client.get(f"/activity/{e.pk}/"), f"/properties/{self.birch.pk}/", fetch_redirect_response=False)
+        self.assertRedirects(self.client.get(f"/activity/{e.pk}/"), f"/properties/{self.birch.pk}/view/", fetch_redirect_response=False)
         self.assertContains(self.client.get("/activity/"), f'href="/activity/{e.pk}/"')
 
     def test_gone_records_and_pageless_entries_explain_instead_of_failing(self):
@@ -122,7 +122,7 @@ class JumpTests(FeedBase):
 class HistoryPanelTests(FeedBase):
     def test_record_page_shows_its_own_recent_history_with_a_link_to_all_of_it(self):
         self.login(self.alice)
-        r = self.client.get(f"/properties/{self.birch.pk}/")
+        r = self.client.get(f"/properties/{self.birch.pk}/view/")
         for text in ("<h2>History", "Created property “Birch Lodge”", "City: Ogdenville → Springfield", "alice@acme.test"):
             self.assertContains(r, text)
         self.assertContains(r, f'href="/activity/?object=property:{self.birch.pk}"')
@@ -133,7 +133,7 @@ class HistoryPanelTests(FeedBase):
         with use_account(self.acme):
             for i in range(12):
                 p = Property.objects.get(pk=self.birch.pk); p.notes = f"v{i}"; p.save()
-        body = self.client.get(f"/properties/{self.birch.pk}/").content.decode()
+        body = self.client.get(f"/properties/{self.birch.pk}/view/").content.decode()
         self.assertEqual(body.count("Updated property"), 8)
 
     def test_no_panel_for_viewers_or_on_create_pages(self):
@@ -141,3 +141,8 @@ class HistoryPanelTests(FeedBase):
         self.login(self.vic); self.assertNotContains(self.client.get(f"/maintenance/{o.pk}/"), "<h2>History")
         self.login(self.alice); self.assertNotContains(self.client.get("/properties/new/"), "<h2>History")
         self.assertContains(self.client.get(f"/maintenance/{o.pk}/"), "<h2>History")
+
+    def test_the_history_panel_lives_on_the_read_only_page_not_the_edit_form(self):
+        self.login(self.alice)
+        self.assertContains(self.client.get(f"/properties/{self.birch.pk}/view/"), "<h2>History")
+        self.assertNotContains(self.client.get(f"/properties/{self.birch.pk}/"), "<h2>History")

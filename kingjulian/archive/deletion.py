@@ -34,8 +34,8 @@ from properties.models import Unit
 from .registry import BY_MODEL, kind_of
 
 CONFIRM_WORD = "DELETE"
-LIVE_EDIT = {"property": "property_edit", "unit": "unit_edit", "item": "inventoryitem_edit", "contact": "contact_edit",
-             "task": "task_edit", "event": "event_edit"}
+LIVE_EDIT = {"property": "property_detail", "unit": "unit_detail", "item": "inventoryitem_detail", "contact": "contact_detail",
+             "task": "task_detail", "event": "event_detail"}          # a live record's read-only page
 
 # kind -> [(label, model, field on that model pointing back at us)]
 BLOCKED_BY = {

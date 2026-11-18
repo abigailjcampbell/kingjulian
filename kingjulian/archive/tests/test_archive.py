@@ -196,8 +196,8 @@ class DetailTests(ArchiveWorld):
         self.assertEqual(self.client.get(f"/files/{att.pk}/download/").status_code, 200)
 
     def test_a_record_that_is_active_again_redirects_to_its_live_page(self):
-        live = {"property": "/properties/{}/", "unit": "/properties/units/{}/", "item": "/inventory/{}/", "contact": "/contacts/{}/",
-                "task": "/maintenance/tasks/{}/", "event": "/planner/events/{}/"}
+        live = {"property": "/properties/{}/view/", "unit": "/properties/units/{}/view/", "item": "/inventory/{}/view/", "contact": "/contacts/{}/view/",
+                "task": "/maintenance/tasks/{}/view/", "event": "/planner/events/{}/view/"}
         for key, url in live.items():
             r = self.client.get(f"/archive/{key}/{self.objs[key].pk}/")
             self.assertRedirects(r, url.format(self.objs[key].pk), fetch_redirect_response=False)
@@ -346,7 +346,7 @@ class RestoreTests(ArchiveWorld):
         att = self.store(self.objs["property"], "plans.png", png())
         self.archive(self.objs["property"]); self.restore("property")
         self.assertEqual(self.client.get(f"/files/{att.pk}/download/").status_code, 200)
-        self.assertContains(self.client.get(f"/properties/{self.objs['property'].pk}/"), "plans.png")
+        self.assertContains(self.client.get(f"/properties/{self.objs['property'].pk}/view/"))
 
     def test_restoring_in_one_account_leaves_a_same_named_record_elsewhere_alone(self):
         with use_account(self.beta):

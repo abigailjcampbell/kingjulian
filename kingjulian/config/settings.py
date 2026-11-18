@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "audit.apps.AuditConfig",
     "exports",
     "archive",
+    "details",
 ]
 
 MIDDLEWARE = [

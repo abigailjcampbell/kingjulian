@@ -105,7 +105,7 @@ class PlanTests(DeleteWorld):
         found = {b.label: b.count for b in plan.blockers}
         self.assertEqual(found, {"unit": 1, "inventory item": 1, "maintenance task": 1, "event": 1})
         links = {b.label: dict(b.examples) for b in plan.blockers}
-        self.assertEqual(links["unit"]["Cellar"], f"/properties/units/{objs['unit'].pk}/")               # active: its live page
+        self.assertEqual(links["unit"]["Cellar"], f"/properties/units/{objs['unit'].pk}/view/")               # active: its live page
         self.archive(objs["unit"])
         links = {b.label: dict(b.examples) for b in self.plan(self.fresh(objs["property"])).blockers}
         self.assertEqual(links["unit"]["Cellar"], f"/archive/unit/{objs['unit'].pk}/")                   # archived: its archive page

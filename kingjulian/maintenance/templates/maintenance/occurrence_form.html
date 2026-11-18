@@ -18,7 +18,7 @@
   <form method="post" action="{% url 'occurrence_skip' object.pk %}" onsubmit="return confirm('Skip this one? The schedule continues.')">
     {% csrf_token %}<button class="secondary">Skip this time</button>
   </form>
-  <a class="btn secondary" href="{% url 'task_edit' task.pk %}">Edit task</a>
+  <a class="btn secondary" href="{% url 'task_detail' task.pk %}">Task details</a>
 </div>
 {% endif %}
 

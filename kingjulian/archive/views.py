@@ -98,8 +98,8 @@ class ArchivedDetail(TenantViewMixin, TemplateView):
         self.kind, self.obj = kind, obj
         return super().get(request, *args, **kwargs)
 
-    edit_names = {"property": "property_edit", "unit": "unit_edit", "item": "inventoryitem_edit", "contact": "contact_edit",
-                  "task": "task_edit", "event": "event_edit"}
+    edit_names = {"property": "property_detail", "unit": "unit_detail", "item": "inventoryitem_detail", "contact": "contact_detail",
+                  "task": "task_detail", "event": "event_detail"}          # a live record's read-only page
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
