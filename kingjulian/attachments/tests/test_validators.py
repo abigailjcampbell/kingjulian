@@ -68,6 +68,11 @@ class RejectTests(SimpleTestCase):
     def test_human_size(self):
         self.assertEqual([human_size(n) for n in (500, 2048, 10 * 1024 * 1024, 1536 * 1024)], ["500 bytes", "2 KB", "10 MB", "1.5 MB"])
 
+    def test_human_size_never_prints_a_long_decimal(self):
+        cases = {0: "0 bytes", 1023: "1023 bytes", 1024: "1 KB", 1484: "1.4 KB", 1536: "1.5 KB", 1126: "1.1 KB", 1048575: "1024 KB",
+                 1048576: "1 MB", 1500000: "1.4 MB", 5 * 1024 * 1024 + 100000: "5.1 MB", 123456789: "117.7 MB"}
+        for n, want in cases.items():
+            self.assertEqual(human_size(n), want, n)
 
 class FilenameTests(SimpleTestCase):
     def test_sanitisation(self):

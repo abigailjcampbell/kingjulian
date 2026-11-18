@@ -17,3 +17,19 @@ def acting_as(user):
         yield
     finally:
         _actor.reset(token)
+
+_quiet = contextvars.ContextVar("audit_quiet", default=False)
+
+
+def is_quiet() -> bool:
+    return _quiet.get()
+
+
+@contextlib.contextmanager
+def quiet():
+    """Suppress the automatic per-row entries while a bulk operation runs; the caller then records one summary entry."""
+    token = _quiet.set(True)
+    try:
+        yield
+    finally:
+        _quiet.reset(token)

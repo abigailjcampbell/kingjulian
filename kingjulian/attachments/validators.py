@@ -47,9 +47,12 @@ class Inspected:
 
 
 def human_size(n: int) -> str:
+    """'1.4 KB', '10 MB', '512 bytes': at most one decimal, no trailing zero."""
+    def trim(x):
+        return f"{x:.1f}".rstrip("0").rstrip(".")
     if n >= 1024 * 1024:
-        return f"{n / (1024 * 1024):g} MB"
-    return f"{n / 1024:g} KB" if n >= 1024 else f"{n} bytes"
+        return f"{trim(n / (1024 * 1024))} MB"
+    return f"{trim(n / 1024)} KB" if n >= 1024 else f"{n} bytes"
 
 
 def max_bytes() -> int:

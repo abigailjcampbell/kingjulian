@@ -4,7 +4,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from contacts.models import ContactProperty
 from maintenance.models import TaskOccurrence
 
-from .context import get_actor
+from .context import get_actor, is_quiet
 from .models import ActivityLog
 from .registry import SPECS, describe_target, display, tracked_fields, verbose
 
@@ -12,6 +12,8 @@ A = ActivityLog.Action
 
 
 def record(*, account_id, action, summary, target=("", None, ""), changes=None):
+    if is_quiet():                                   # inside audit.context.quiet(): the caller writes one summary entry
+        return
     actor = get_actor()
     ActivityLog(account_id=account_id, actor=actor, actor_email=getattr(actor, "email", "") or "", action=action,
                 target_type=target[0], target_id=target[1], target_label=target[2][:200],
