@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ name }}?{% endblock %}
+{% block content %}
+<style>
+  .danger-box { background:#fff; border:2px solid #b42318; border-radius:8px; padding:1rem 1.2rem; max-width:680px; }
+  .danger-box h2 { color:#b42318; margin:0 0 .4rem; font-size:1.05rem; } .danger-box ul { margin:.3rem 0 .8rem 1.1rem; padding:0; }
+  .danger-box .err { color:#b42318; font-weight:600; margin:.3rem 0; }
+</style>
+<h1>Permanently delete “{{ name }}”?</h1>
+<p>This is a {{ kind.label|lower }} in the archive. <strong>Deleting it cannot be undone.</strong></p>
+
+{% if plan.blockers %}
+  <div class="danger-box">
+    <h2>It can't be deleted yet</h2>
+    <p>These still depend on it. Delete or move them first:</p>
+    <ul>
+      {% for b in plan.blockers %}
+        <li><strong>{{ b.count }} {{ b.label }}{{ b.count|pluralize }}</strong>:
+          {% for text, url in b.examples %}{% if url %}<a href="{{ url }}">{{ text }}</a>{% else %}{{ text }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}{% if b.count > 5 %} and {{ b.count|add:"-5" }} more{% endif %}</li>
+      {% endfor %}
+    </ul>
+    <a class="btn secondary" href="{% url 'archive_detail' kind.key obj.pk %}">Back</a>
+  </div>
+{% else %}
+  <div class="danger-box">
+    <h2>This will permanently destroy</h2>
+    <ul>
+      <li>the {{ kind.label|lower }} “{{ name }}” itself</li>
+      {% for line in plan.deletes %}<li>{{ line }}</li>{% endfor %}
+      {% if plan.file_names %}<li style="list-style:none;color:var(--muted);font-size:.9rem">Files: {{ plan.files_label }}</li>{% endif %}
+    </ul>
+    {% if plan.unlinks %}
+      <strong>It will also change</strong>
+      <ul>{% for line in plan.unlinks %}<li>{{ line }}</li>{% endfor %}</ul>
+    {% endif %}
+    <p style="color:var(--muted);font-size:.88rem">The activity log keeps a record that this was deleted (and any earlier history that mentions its name). Files are removed from storage.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="token" value="{{ plan.token }}">
+      <label for="confirm"><strong>Type {{ word }} to confirm</strong></label><br>
+      <input id="confirm" name="confirm" autocomplete="off" autofocus style="margin:.3rem 0 .5rem;width:12rem">
+      {% if error %}<div class="err">{{ error }}</div>{% endif %}
+      <div class="toolbar" style="margin:0">
+        <button class="danger" type="submit">Permanently delete</button>
+        <a class="btn secondary" href="{% url 'archive_detail' kind.key obj.pk %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+  <p style="max-width:680px">Not sure? You can leave it in the archive, or
+    <form method="post" action="{% url 'archive_restore' kind.key obj.pk %}" style="display:inline">{% csrf_token %}<button class="linklike">restore it</button></form> instead.</p>
+{% endif %}
+{% endblock %}

@@ -11,9 +11,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import path, reverse
+from django.urls import NoReverseMatch, path, reverse
 from django.views import View
 from django.views.generic import CreateView, ListView, UpdateView
+from django.utils.html import format_html
 
 from .tenancy import require_current_account_id
 
@@ -151,8 +152,18 @@ class TenantArchiveView(TenantViewMixin, View):
     def post(self, request, pk):
         obj = get_object_or_404(self.model.objects.active(), pk=pk)
         obj.archive()
-        messages.success(request, f"Archived {obj}.")
+        messages.success(request, self.archived_message(obj))
         return redirect(self.url("list"))
+
+    @staticmethod
+    def archived_message(obj):
+        """'Archived X.' plus an Undo link to the Archive page (plain text if that app isn't installed)."""
+        try:
+            from archive.registry import detail_url        # imported here so core never depends on archive at import time
+            link = detail_url(obj)
+        except (ImportError, NoReverseMatch):
+            link = None
+        return format_html('Archived {}. <a href="{}">Undo</a>', obj, link) if link else f"Archived {obj}."
 
 
 def crud_urls(prefix, basename, list_view, create_view, update_view, archive_view):

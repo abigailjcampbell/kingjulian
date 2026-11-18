@@ -160,7 +160,7 @@ class OccurrencePageTests(ViewBase):
         for needle in ("Flush water heater", "Maple Duplex", "Water Heater 50gal", "Yearly", "Dana Pipes",
                        "10 days overdue", "Mark complete", "Skip this time", "Edit task", ">Save<"):
             self.assertContains(r, needle)
-        self.assertNotContains(r, "Archive")
+        self.assertNotContains(r, ">Archive</button>")  
 
     def test_closed_occurrence_page_shows_history_and_no_actions(self):
         with use_account(self.acme):

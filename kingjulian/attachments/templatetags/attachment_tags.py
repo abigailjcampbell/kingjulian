@@ -17,5 +17,6 @@ def attachments_panel(context, obj):
     field = TARGETS[kind][1]
     items = list(Attachment.objects.filter(**{field: obj}).select_related("uploaded_by"))
     return {"show": True, "items": items, "kind": kind, "obj": obj, "request": request,
-            "can_write": request.membership.can_write, "csrf_token": context.get("csrf_token"),
+            "can_write": request.membership.can_write and getattr(obj, "archived_at", None) is None,   # no uploads to archived records
+            "csrf_token": context.get("csrf_token"),
             "accept": ",".join("." + e for e in ALLOWED_EXTENSIONS), "limit": human_size(max_bytes())}

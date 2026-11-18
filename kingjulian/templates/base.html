@@ -50,7 +50,7 @@
     <a href="{% url 'task_list' %}">Tasks</a>
     <a href="{% url 'calendar' %}">Calendar</a>
     <a href="{% url 'attachment_list' %}">Files</a>
-    {% if request.membership.can_write %}<a href="{% url 'activity_list' %}">Activity</a><a href="{% url 'export_hub' %}">Export</a>{% endif %}
+    {% if request.membership.can_write %}<a href="{% url 'activity_list' %}">Activity</a><a href="{% url 'export_hub' %}">Export</a><a href="{% url 'archive_list' %}">Archive</a>{% endif %}
     <a href="{% url 'contact_list' %}">Contacts</a>
     <span class="spacer"></span>
     {% if request.memberships|length > 1 %}

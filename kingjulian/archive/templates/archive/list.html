@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Archive{% endblock %}
+{% block content %}
+<h1>Archive</h1>
+<p style="color:var(--muted)">Records you archived are hidden everywhere else but never deleted. Restore one to bring it back exactly as it was.</p>
+<form class="toolbar" method="get">
+  <select name="type" aria-label="Type" onchange="this.form.submit()">
+    <option value="">All types ({{ total }})</option>
+    {% for key, label, count in type_options %}<option value="{{ key }}" {% if chosen == key %}selected{% endif %}>{{ label }} ({{ count }})</option>{% endfor %}
+  </select>
+  <input type="search" name="q" value="{{ q }}" placeholder="Search archived…" autocomplete="off">
+  <button class="secondary">Search</button>
+</form>
+<table>
+  <thead><tr><th>Name</th><th>Type</th><th>Where</th><th>Archived</th><th>By</th><th></th></tr></thead>
+  <tbody>
+  {% for r in page.object_list %}
+    <tr>
+      <td><a href="{{ r.detail_url }}">{{ r.name }}</a></td>
+      <td>{{ r.kind.label }}</td>
+      <td>{{ r.where|default:"—" }}</td>
+      <td>{{ r.archived_at|date:"M j, Y" }}</td>
+      <td>{{ r.by }}</td>
+      <td>
+        <form method="post" action="{{ r.restore_url }}" style="margin:0">{% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="secondary">Restore</button>
+        </form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">{% if q or chosen %}Nothing archived matches.{% else %}Nothing is archived. Archived records will appear here.{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if capped %}<p style="color:var(--muted)">Showing the most recent 1,000 archived records of a type. Narrow it with search to see older ones.</p>{% endif %}
+{% if page.paginator.num_pages > 1 %}
+<div class="pager">
+  {% if page.has_previous %}<a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page.previous_page_number }}">← Prev</a>{% endif %}
+  <span>Page {{ page.number }} of {{ page.paginator.num_pages }} ({{ page.paginator.count }} total)</span>
+  {% if page.has_next %}<a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page.next_page_number }}">Next →</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

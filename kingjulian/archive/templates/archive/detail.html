@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load attachment_tags audit_tags %}
+{% block title %}{{ name }} (archived){% endblock %}
+{% block content %}
+<h1>{{ name }} <small style="color:var(--muted);font-weight:400">· archived {{ kind.label|lower }}</small></h1>
+<p>Archived {{ obj.archived_at|date:"M j, Y g:i A" }}{% if archived_by != "—" %} by {{ archived_by }}{% endif %}. It is hidden from lists and can't be edited until restored.</p>
+
+{% if blockers %}
+  <div class="messages"><ul class="messages"><li class="error">This can't be restored yet:
+    {% for b in blockers %}<br>{{ b.text }}{% if b.url %} <a href="{{ b.url }}">Open it</a>{% endif %}{% endfor %}</li></ul></div>
+{% else %}
+  <form method="post" action="{% url 'archive_restore' kind.key obj.pk %}" style="margin-bottom:1rem">{% csrf_token %}
+    <button type="submit">Restore {{ kind.label|lower }}</button>
+    <a class="btn secondary" href="{% url 'archive_list' %}">Back to archive</a>
+  </form>
+{% endif %}
+
+<table style="max-width:640px">
+  {% for label, value in fields %}<tr><th style="width:11rem">{{ label }}</th><td>{{ value|default:"—"|linebreaksbr }}</td></tr>{% endfor %}
+</table>
+{% if blockers %}<p><a class="btn secondary" href="{% url 'archive_list' %}">Back to archive</a></p>{% endif %}
+{% attachments_panel obj %}
+{% history_panel obj %}
+{% endblock %}
