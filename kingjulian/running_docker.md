@@ -10,6 +10,10 @@ test dummy login:
     
     The other seeded logins are viewer@sunrise.test, owner@lakeside.test, and both@demo.test, which belongs to both accounts and shows the account switcher. To create your own admin user, run docker compose exec web python manage.py createsuperuser.
 
+    new account:
+    gailjcamp@gmail.com
+    dummy-6789
+
 
 Day-to-day commands:
 

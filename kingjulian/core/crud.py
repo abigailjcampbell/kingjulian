@@ -105,13 +105,26 @@ class TenantListView(TenantViewMixin, ListView):
                 }
                 for f in self.filters
             ],
-            create_url=self.url("create") if self.has_create else None,
+            create_url=self.get_create_url() if self.has_create else None,
+            back_url=self.back_url, back_label=self.back_label,
             link_rows=self.request.membership.can_write or self.viewers_can_open or self.row_url_name()[1],
             export_url=("?" + (params.urlencode() + "&" if params else "") + "export=csv")
             if self.export_key and self.request.membership.can_write else None,
             edit_url_name=self.row_url_name()[0],
         )
         return ctx
+
+    def get_create_url(self):
+        return self.url("create")
+
+    def row_url_name(self):
+        """(url name, is_detail): rows open the record's read-only page when it has one, else its edit/action page."""
+        name = f"{self.url_basename}_detail"
+        try:
+            reverse(name, args=[0])
+            return name, True
+        except NoReverseMatch:
+            return f"{self.url_basename}_edit", False
 
     def row_url_name(self):
         """(url name, is_detail): rows open the record's read-only page when it has one, else its edit/action page."""
@@ -129,8 +142,12 @@ class TenantFormMixin(TenantViewMixin):
     template_name = "crud/form.html"
     title = ""
 
-    def get_success_url(self):
+    def get_list_url(self):
+        """Where 'the list' is for this record type; child records (units) override this to point at their parent."""
         return self.url("list")
+
+    def get_success_url(self):
+        return self.get_list_url()
 
     def cancel_url(self):
         """Back to the record's read-only page when editing one, otherwise to the list."""
@@ -140,12 +157,12 @@ class TenantFormMixin(TenantViewMixin):
                 return reverse(f"{self.url_basename}_detail", args=[obj.pk])
             except NoReverseMatch:
                 pass
-        return self.url("list")
+        return self.get_list_url()
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["title"] = self.title
-        ctx["list_url"] = self.url("list")
+        ctx["list_url"] = self.get_list_url()
         ctx["cancel_url"] = self.cancel_url()
         if self.archivable and getattr(self, "object", None) and self.object.pk:
             ctx["archive_url"] = self.url("archive", self.object.pk)
@@ -178,7 +195,11 @@ class TenantArchiveView(TenantViewMixin, View):
         obj = get_object_or_404(self.model.objects.active(), pk=pk)
         obj.archive()
         messages.success(request, self.archived_message(obj))
-        return redirect(self.url("list"))
+        return redirect(self.after_archive_url(obj))
+
+    def after_archive_url(self, obj):
+        """Where to land after archiving; child records (units) override this to return to their parent."""
+        return self.url("list")
 
     @staticmethod
     def archived_message(obj):
@@ -189,7 +210,6 @@ class TenantArchiveView(TenantViewMixin, View):
         except (ImportError, NoReverseMatch):
             link = None
         return format_html('Archived {}. <a href="{}">Undo</a>', obj, link) if link else f"Archived {obj}."
-
 
 def crud_urls(prefix, basename, list_view, create_view, update_view, archive_view):
     base = f"{prefix.strip('/')}/" if prefix.strip("/") else ""

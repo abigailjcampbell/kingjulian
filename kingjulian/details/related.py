@@ -28,14 +28,23 @@ class Section:
     rows: list = field(default_factory=list)
     total: int = 0
     more_url: str | None = None
+    add_url: str | None = None           # "+ Add" link shown in the heading (writers only)
+    add_label: str = ""
+    empty_text: str = ""                 # shown instead of the section being hidden, when add_url is set
 
 
-def _section(title, qs, make_row, more=None):
+def _section(title, qs, make_row, more=None, add=None):
+    """more=(url name, query string[, reverse args]); add=(url, label, empty text) keeps the section visible when empty."""
     total = qs.count()
-    if not total:
+    if not total and not add:
         return None
-    more_url = (reverse(more[0]) + "?" + more[1]) if (more and total > LIMIT) else None
-    return Section(title, [make_row(o) for o in qs[:LIMIT]], total, more_url)
+    more_url = None
+    if more and total > LIMIT:
+        more_url = reverse(more[0], args=more[2] if len(more) > 2 else None) + (("?" + more[1]) if more[1] else "")
+    section = Section(title, [make_row(o) for o in qs[:LIMIT]], total, more_url)
+    if add:
+        section.add_url, section.add_label, section.empty_text = add
+    return section
 
 
 def _unit_row(u):
@@ -77,12 +86,13 @@ def _tasks(**where):
             .order_by("title"))
 
 
-def sections_for(key, obj):
-    """Non-empty sections for this record, in reading order."""
+def sections_for(key, obj, can_write=False):
+    """Non-empty sections for this record, in reading order. A property's Units section stays visible (with an Add button) for writers."""
     pk = obj.pk
     if key == "property":
         found = [
-            _section("Units", Unit.objects.active().filter(property=obj).order_by("name"), _unit_row, ("unit_list", f"property={pk}")),
+            _section("Units", Unit.objects.active().filter(property=obj).order_by("name"), _unit_row, ("property_units", "", [pk]),
+                     add=(f"{reverse('unit_create')}?property={pk}", "+ Add unit", "No units yet.") if can_write else None),
             _section("Inventory", InventoryItem.objects.active().filter(property=obj).select_related("unit").order_by("name"), _item_row,
                      ("inventoryitem_list", f"property={pk}")),
             _section("Maintenance tasks", _tasks(property=obj), _task_row, ("task_list", f"property={pk}")),

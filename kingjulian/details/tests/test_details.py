@@ -223,7 +223,7 @@ class RelatedSectionTests(DetailBase):
         with use_account(self.beta):
             Unit.objects.create(property=self.lake, name="Penthouse2")
         s = sections(self.get("property"))
-        self.assertNotIn("Units", s); self.assertNotIn("Events", s)                                    # archived ones are gone; empty sections hidden
+        self.assertEqual(s["Units"], []); self.assertNotIn("Events", s)                                    # archived ones are gone; empty sections hidden
         self.assertNotIn("Penthouse2", str(s))
 
     def test_long_lists_are_cut_with_an_exact_total_and_a_filtered_see_all_link(self):
@@ -234,9 +234,9 @@ class RelatedSectionTests(DetailBase):
         r = self.get("property"); s = sections(r)
         self.assertEqual((len(s["Units"]), len(s["Inventory"])), (8, 8))
         self.assertContains(r, "<small>12</small>")                                                    # 1 + 11 units
-        self.assertContains(r, f'href="/properties/units/?property={self.objs["property"].pk}">See all 12')
+        self.assertContains(r, f'href="/properties/{self.objs["property"].pk}/units/">See all 12')
         self.assertContains(r, f'href="/inventory/?property={self.objs["property"].pk}">See all 12')
-        self.assertEqual(len(self.client.get(f"/properties/units/?property={self.objs['property'].pk}").context["object_list"]), 12)
+        self.assertEqual(len(self.client.get(f"/properties/{self.objs['property'].pk}/units/").context["object_list"]), 12)
 
     def test_unit_item_and_contact_sections(self):
         with use_account(self.acme):
@@ -293,8 +293,8 @@ class PanelTests(DetailBase):
 
 class RowLinkTests(DetailBase):
     def test_every_list_opens_the_read_only_page_and_other_lists_keep_their_own_pages(self):
-        lists = {"property": "/properties/", "unit": "/properties/units/", "item": "/inventory/", "contact": "/contacts/",
-                 "task": "/maintenance/tasks/", "event": "/planner/events/"}
+        lists = {"property": "/properties/", "unit": f"/properties/{self.objs['property'].pk}/units/", "item": "/inventory/", 
+                 "contact": "/contacts/", "task": "/maintenance/tasks/", "event": "/planner/events/"}
         for user in (self.alice, self.vic):
             self.login(user)
             for key, url in lists.items():

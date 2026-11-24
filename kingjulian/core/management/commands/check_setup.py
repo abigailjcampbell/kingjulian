@@ -109,7 +109,7 @@ def build_checks():
 
     # ---- templates ---------------------------------------------------------------------------------------
     t = lambda tpl, *needles: (lambda: all(n in template_text(tpl) for n in needles))
-    add("base.html nav links", t("base.html", "occurrence_list", "'calendar'", "attachment_list", "activity_list", "export_hub", "archive_list", "account_settings"), "Add the nav links from the step 3, 4, 5 and timezone patches (Maintenance, Calendar, Files, Activity, Export, Settings) to templates/base.html.")
+    add("base.html nav links", t("base.html", "occurrence_list", "task_list", "'calendar'", "attachment_list", "activity_list", "export_hub", "archive_list", "account_settings"), "Add the nav links from the step 3, 4, 5 and timezone patches (Maintenance, Tasks, Calendar, Files, Activity, Export, Settings) to templates/base.html.")
     add("crud/list.html export button", t("crud/list.html", "export_url"), "Step 5, section 5: add the Export CSV link to templates/crud/list.html.")
     add("base.html has no Units tab", lambda: "unit_list" not in template_text("base.html"), "Units patch, section 7: delete the `<a href=\"{% url 'unit_list' %}\">Units</a>` line from templates/base.html.")
     add("crud/list.html back link", t("crud/list.html", "back_url"), "Units patch, section 7: add the back_url line above <h1> in templates/crud/list.html.")

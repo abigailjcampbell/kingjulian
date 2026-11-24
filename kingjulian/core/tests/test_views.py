@@ -14,14 +14,14 @@ from .base import PW, World
 
 class AuthAndRoleTests(World):
     def test_anonymous_redirected_to_login(self):
-        for url in ("/", "/properties/", "/inventory/", "/contacts/", "/properties/units/"):
+        for url in ("/", "/properties/", "/inventory/", "/contacts/", f"/properties/{self.maple.pk}/units/"):
             r = self.client.get(url)
             self.assertEqual(r.status_code, 302, url)
             self.assertIn("/accounts/login/", r["Location"])
 
     def test_all_list_pages_render_for_owner(self):
         self.login(self.alice)
-        for url in ("/", "/properties/", "/inventory/", "/contacts/", "/properties/units/",
+        for url in ("/", "/properties/", "/inventory/", "/contacts/", f"/properties/{self.maple.pk}/units/",
                     "/properties/new/", "/inventory/new/", "/contacts/new/", "/properties/units/new/"):
             self.assertEqual(self.client.get(url).status_code, 200, url)
 
@@ -41,7 +41,7 @@ class AuthAndRoleTests(World):
 class IsolationTests(World):
     def test_list_shows_only_own_account(self):
         self.login(self.alice)
-        for url in ("/properties/", "/inventory/", "/contacts/", "/properties/units/"):
+        for url in ("/properties/", "/inventory/", "/contacts/", f"/properties/{self.maple.pk}/units/"):
             body = self.client.get(url).content.decode()
             for leaked in ("Lakeview Tower", "Secret Chiller", "Beta Vendor", "Penthouse"):
                 self.assertNotIn(leaked, body, f"{leaked} leaked on {url}")

@@ -15,7 +15,7 @@ from django.urls import reverse
 
 from inventory.models import InventoryItem
 from maintenance.models import TaskOccurrence
-from properties.models import Property, Unit
+from properties.models import Property
 from contacts.models import Contact
 
 from .models import Event
@@ -227,7 +227,6 @@ def dashboard(today: date, *, can_write: bool, limit: int = 6) -> Dashboard:
                                .order_by("-total", "task__property__name")[:5])
 
     d.counts = {"Properties": (Property.objects.active().count(), "property_list"),
-                "Units": (Unit.objects.active().count(), "unit_list"),
                 "Inventory items": (items.count(), "inventoryitem_list"),
                 "Contacts": (Contact.objects.active().count(), "contact_list")}
     return d

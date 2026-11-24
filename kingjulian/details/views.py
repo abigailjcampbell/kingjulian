@@ -52,10 +52,14 @@ class RecordDetail(TenantViewMixin, TemplateView):
         fields = [(label, value, links.get(label)) for label, value in rows]
         fields += [(label, value, None) for label, value in extra_rows(self.kind.key, self.obj, timezone.localdate())]
         can_write = self.request.membership.can_write
+        if self.kind.key == "unit":                          # units have no list of their own: "back" is the property's page
+            list_url, back_label = reverse("property_detail", args=[self.obj.property_id]), self.obj.property.name
+        else:
+            list_url, back_label = reverse(LIST_NAMES[self.kind.key]), LIST_TITLES[self.kind.key].lower()
         ctx.update(
             kind=self.kind, obj=self.obj, name=name, fields=fields, can_write=can_write,
-            sections=sections_for(self.kind.key, self.obj),
-            list_url=reverse(LIST_NAMES[self.kind.key]), list_title=LIST_TITLES[self.kind.key],
+            sections=sections_for(self.kind.key, self.obj, can_write),
+            list_url=list_url, list_title=back_label,
             edit_url=reverse(EDIT_NAMES[self.kind.key], args=[self.obj.pk]) if can_write else None,
             archive_url=reverse(ARCHIVE_NAMES[self.kind.key], args=[self.obj.pk]) if can_write else None,
         )

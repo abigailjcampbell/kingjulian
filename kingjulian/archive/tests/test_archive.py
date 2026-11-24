@@ -248,8 +248,11 @@ class RestoreTests(ArchiveWorld):
         for key, obj in self.objs.items():
             before = self.snapshot(self.fresh(obj))
             self.archive(obj, user=self.alice)
-            self.assertNotContains(self.client.get(live_pages[key], HTTP_HX_REQUEST="true"), self.snapshot_name(obj))
+
+            list_url = f"/properties/{obj.property_id}/units/" if key == "unit" else live_pages[key]      # units are listed under their property
+            self.assertNotContains(self.client.get(list_url, HTTP_HX_REQUEST="true"), self.snapshot_name(obj))
             r = self.restore(key)
+            
             self.assertRedirects(r, "/archive/", fetch_redirect_response=False)
             after = self.fresh(obj)
             self.assertIsNone(after.archived_at, key); self.assertEqual(self.snapshot(after), before, key)

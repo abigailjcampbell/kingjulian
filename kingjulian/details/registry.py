@@ -9,7 +9,7 @@ EDIT_NAMES = {"property": "property_edit", "unit": "unit_edit", "item": "invento
               "contact": "contact_edit", "task": "task_edit", "event": "event_edit"}
 ARCHIVE_NAMES = {"property": "property_archive", "unit": "unit_archive", "item": "inventoryitem_archive",
                  "contact": "contact_archive", "task": "task_archive", "event": "event_archive"}
-LIST_NAMES = {"property": "property_list", "unit": "unit_list", "item": "inventoryitem_list",
+LIST_NAMES = {"property": "property_list", "unit": "property_list", "item": "inventoryitem_list",
               "contact": "contact_list", "task": "task_list", "event": "event_list"}
 LIST_TITLES = {"property": "Properties", "unit": "Units", "item": "Inventory", "contact": "Contacts",
                "task": "Maintenance tasks", "event": "Events"}

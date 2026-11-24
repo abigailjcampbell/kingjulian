@@ -120,12 +120,12 @@ class DashboardTests(PlannerWorld):
         empty = Account.objects.create(name="Empty Co")
         d = self.dash(account=empty)
         self.assertEqual((d.overdue_count, d.due_week_count, d.open_count, d.spend_total, d.spend_jobs), (0, 0, 0, 0, 0))
-        self.assertEqual({k: v[0] for k, v in d.counts.items()}, {"Properties": 0, "Units": 0, "Inventory items": 0, "Contacts": 0})
+        self.assertEqual({k: v[0] for k, v in d.counts.items()}, {"Properties": 0, "Inventory items": 0, "Contacts": 0})
 
     def test_counts_match_the_data(self):
         d = self.dash()
         self.assertEqual({k: v[0] for k, v in d.counts.items()},
-                         {"Properties": 2, "Units": 2, "Inventory items": 2, "Contacts": 1})
+                         {"Properties": 2, "Inventory items": 2, "Contacts": 1})
 
     def test_query_count_does_not_grow_with_data(self):
         def count():

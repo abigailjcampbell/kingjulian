@@ -140,7 +140,7 @@ class ListExportTests(RichData):
         self.assertTrue(r.content.startswith("\ufeff".encode())); self.assertIn(b"\r\n", r.content)
 
     def test_every_list_can_export_and_viewers_cannot(self):
-        urls = {"/properties/": "properties", "/properties/units/": "units", "/inventory/": "inventory", "/contacts/": "contacts",
+        urls = {"/properties/": "properties", f"/properties/{self.maple.pk}/units/": "units", "/inventory/": "inventory", "/contacts/": "contacts",
                 "/maintenance/tasks/": "tasks", "/maintenance/?status=": "history", "/planner/events/?when=": "events",
                 "/files/": "attachments", "/activity/": "activity"}
         for url, key in urls.items():
