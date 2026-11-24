@@ -1,9 +1,12 @@
 start:
     bash command: docker compose up --build
-seed data:
+seed data (already done - only need to do in initial compose):
     docker compose exec web python manage.py seed_demo
     docker compose exec web python manage.py seed_maintenance
     docker compose exec web python manage.py seed_planner  
+
+local host:
+    http://localhost:8000
 
 test dummy login:
     Log in as owner@sunrise.test (password demo-pass-12345). 
