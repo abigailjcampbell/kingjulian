@@ -52,6 +52,10 @@ class TenantListView(TenantViewMixin, ListView):
     search_fields: tuple = ()
     filters: list = []
     paginate_by = 25
+    tabs = None                      # optional [(label, url, active)] strip above the title (sibling lists that share one nav item)
+    create_label = "+ New"
+    back_url = None                  # optional "← back" link above the list (child lists point at their parent)
+    back_label = ""
     has_create = True                
     viewers_can_open = False 
     template_name = "crud/list.html"
